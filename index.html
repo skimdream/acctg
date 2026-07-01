@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pawsome Accounting Quest</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#EEF1F7; --panel:#FFFFFF; --panel2:#F5F7FB; --panel3:#EBEFF6;
+    --ink:#1C2434; --soft:#586075; --soft2:#8A93A6; --line:#DCE2EC; --line2:#C5CDDC;
+    --brand:#3A50C9; --brand-d:#2C3FA8; --brand-soft:#E7EBF8;
+    --asset:#2F7BD6; --liab:#E0635F; --equity:#8A53C9; --rev:#19A06B; --exp:#E08A2B; --div:#1AA3B5; --contra:#6E788E;
+    --good:#19A06B; --good-bg:#E5F5EE; --good-line:#A8E0C8; --wrong:#DC4B6E; --wrong-bg:#FCE9EF; --wrong-line:#F2B8C9;
+    --warn:#D98A1F; --warn-bg:#FBF1DF;
+    --debit:#2F6FD0; --credit:#178A5E;
+    --r:6px; --rs:4px; --rl:9px;
+    --sh:0 1px 3px rgba(28,40,70,.08),0 1px 2px rgba(28,40,70,.04);
+    --sh2:0 6px 18px rgba(28,40,70,.13);
+    --mono:ui-monospace,'SF Mono','Cascadia Mono','Roboto Mono',Menlo,Consolas,monospace;
+  }
+  html{overflow-y:scroll}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;font-size:15.5px;overflow-x:hidden}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+  b{font-weight:700}
+
+  /* ---- top bar ---- */
+  .topbar{position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:9px 16px;box-shadow:var(--sh);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color:var(--brand);letter-spacing:.1px}
+  .brandtxt{display:flex;flex-direction:column;line-height:1.05}
+  .brandtxt .bt1{font-size:15px}
+  .brandtxt .bt2{font-size:10px;color:var(--soft2);font-weight:600;letter-spacing:0;margin-top:2px}
+  .leftzone{flex:1 1 0;display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+  .rightzone{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;flex-wrap:wrap}
+  .brand{flex:0 0 auto;justify-content:center;text-align:center}
+  .sesstimer{font-size:11px;color:var(--soft);font-weight:700;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+  .sesstimer b{color:var(--brand);font-variant-numeric:tabular-nums}
+  .appfoot{max-width:1200px;margin:8px auto 22px;padding:11px 16px;text-align:center;font-size:11.5px;color:var(--soft2);border-top:1px solid var(--line)}
+  .brand .pw{font-size:19px}
+  .who{font-size:12.5px;color:var(--soft);font-weight:600;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 11px;white-space:nowrap}
+  .who b{color:var(--ink)}
+  .spacer{flex:1}
+  .stat{display:flex;align-items:center;gap:7px}
+  .stat .lbl{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--soft2)}
+  .scorev{font-weight:800;font-size:14px;color:var(--brand)}
+  .prog{display:flex;align-items:center;gap:7px;min-width:150px}
+  .pbar{height:8px;background:var(--panel3);border-radius:999px;overflow:hidden;flex:1;min-width:70px;border:1px solid var(--line)}
+  .pbar>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),#5b6fe0);border-radius:999px;transition:width .45s}
+  .progn{font-weight:800;font-size:13px;color:var(--soft);min-width:34px;text-align:right}
+  .tbtn{background:var(--panel);border:1px solid var(--line2);color:var(--ink);font-weight:700;font-size:12.5px;padding:6px 11px;border-radius:var(--rs);cursor:pointer;transition:.12s}
+  .tbtn:hover{border-color:var(--brand);color:var(--brand)}
+  .tbtn:active{transform:translateY(1px)}
+  .tbtn.save{border-color:var(--good);color:var(--good)}
+  .tbtn.save:hover{background:var(--good);color:#fff}
+  .tbtn.reset{color:var(--wrong);border-color:var(--wrong-line)}
+  .tbtn.reset:hover{background:var(--wrong);color:#fff}
+  @media(max-width:760px){ .prog{min-width:110px} .leftzone,.rightzone,.brand{flex:1 1 100%;justify-content:center} }
+
+  /* ---- layout ---- */
+  .app{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:228px 1fr;gap:16px;align-items:start}
+  @media(max-width:920px){ .app{grid-template-columns:1fr;gap:10px;padding:10px} }
+
+  /* ---- sidebar stage map ---- */
+  .sidemap{position:sticky;top:70px;background:var(--panel);border:1px solid var(--line);border-radius:var(--rl);padding:11px 9px;box-shadow:var(--sh)}
+  .mtitle{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--soft2);padding:2px 6px 8px}
+  .ggrp{margin-bottom:3px}
+  .glabel{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--brand);padding:9px 6px 3px;opacity:.85}
+  .node{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--rs);margin:1px 0;border:1px solid transparent;transition:.12s}
+  .node .ic{width:24px;height:24px;flex:0 0 24px;border-radius:var(--rs);display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--panel3);color:var(--soft)}
+  .node .nl{font-size:12.5px;font-weight:700;color:var(--soft);line-height:1.15}
+  .node.locked{opacity:.5}
+  .node.done .ic{background:var(--good);color:#fff}
+  .node.done .nl{color:#137a51}
+  .node.current{background:var(--brand-soft);border-color:#c3ccf0}
+  .node.current .ic{background:var(--brand);color:#fff}
+  .node.current .nl{color:var(--ink);font-weight:800}
+  .node.clickable{cursor:pointer}
+  .node.clickable:hover{border-color:var(--brand)}
+  @media(max-width:920px){
+    .sidemap{position:static;display:flex;overflow-x:auto;gap:7px;padding:9px;-webkit-overflow-scrolling:touch}
+    .mtitle,.glabel{display:none}
+    .ggrp{display:flex;gap:7px;margin:0}
+    .node{flex:0 0 auto;flex-direction:column;width:70px;text-align:center;gap:3px;padding:7px 4px}
+    .node .nl{font-size:9.5px}
+  }
+
+  /* ---- cards ---- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--rl);padding:20px;box-shadow:var(--sh);margin-bottom:14px}
+  .card.tight{padding:14px}
+  .eyebrow{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--brand)}
+  h2.h{font-size:21px;font-weight:800;margin:5px 0 4px;letter-spacing:-.2px}
+  h3.sh{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin:0 0 8px;font-weight:800}
+  p.lede{color:var(--soft);font-size:14px;margin:0 0 6px}
+  .muted{color:var(--soft)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .right{margin-left:auto}
+
+  /* ---- buttons ---- */
+  .btn{font-family:inherit;font-weight:800;font-size:13.5px;padding:10px 16px;border-radius:var(--rs);border:1px solid var(--line2);background:#fff;color:var(--ink);cursor:pointer;transition:.12s}
+  .btn:hover{border-color:var(--brand);color:var(--brand)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.primary:hover{background:var(--brand-d);color:#fff}
+  .btn.primary:disabled{background:#B9C0D8;border-color:#B9C0D8;cursor:not-allowed;transform:none}
+  .btn.sm{padding:7px 12px;font-size:12.5px}
+  .btn.big{padding:13px 20px;font-size:14.5px;width:100%}
+  .btn.ghost{background:transparent}
+
+  /* ---- tip box (always-on info, muted) #12 ---- */
+  .tip{background:var(--panel3);border:1px solid var(--line);border-left:3px solid var(--soft2);border-radius:var(--rs);padding:9px 12px;font-size:12.5px;color:var(--soft);display:flex;gap:8px;align-items:flex-start}
+  .tip .ti{color:var(--soft2);font-weight:800;flex:0 0 auto}
+  .note{background:var(--brand-soft);border:1px solid #d4dbf3;border-left:3px solid var(--brand);border-radius:var(--rs);padding:10px 13px;font-size:13.5px;color:#33407a}
+  .note.warn{background:var(--warn-bg);border-left-color:var(--warn);color:#8a5a13;border-color:#f0ddb8}
+  .note.good{background:var(--good-bg);border-left-color:var(--good);color:#137a51;border-color:var(--good-line)}
+
+  .fb{border-radius:var(--rs);padding:9px 12px;font-size:13px;font-weight:700;margin-top:10px;display:none}
+  .fb.show{display:block}
+  .fb.good{background:var(--good-bg);color:#137a51;border:1px solid var(--good-line)}
+  .fb.bad{background:var(--wrong-bg);color:#bb3658;border:1px solid var(--wrong-line)}
+  .fb.warn{background:var(--warn-bg);color:#8a5a13;border:1px solid #f0ddb8}
+
+  /* ---- equation ---- */
+  .eq{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;font-size:23px;font-weight:800;padding:16px;background:var(--panel2);border-radius:var(--r);margin:8px 0}
+  .eq .op{color:var(--soft2);font-size:22px}
+  .eq .c3{padding:7px 14px;border-radius:var(--rs);color:#fff}
+  .eq .a{background:var(--asset)} .eq .l{background:var(--liab)} .eq .e{background:var(--equity)}
+  .defs{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+  @media(max-width:680px){ .defs{grid-template-columns:1fr} .eq{font-size:19px} }
+  .def{border:1px solid var(--line);border-radius:var(--r);padding:12px;border-top:3px solid}
+  .def.a{border-top-color:var(--asset)} .def.l{border-top-color:var(--liab)} .def.e{border-top-color:var(--equity)}
+  .def .t{font-weight:800;font-size:14px} .def .d{font-size:12.5px;color:var(--soft);margin-top:2px}
+  .solve{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin:8px 0;font-weight:700;font-size:14px}
+  .solve.good{border-color:var(--good);background:var(--good-bg)} .solve.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  input.box{font-family:inherit;font-weight:800;font-size:14px;padding:8px 10px;border:1px solid var(--line2);border-radius:var(--rs);width:120px;color:var(--ink);background:#fff;text-align:right;font-variant-numeric:tabular-nums}
+  input.box:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  input.box.ok{border-color:var(--good);background:var(--good-bg)} input.box.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+
+  /* ---- classify ---- */
+  .scnt{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+  .scnt .n{font-weight:800;font-size:13.5px;white-space:nowrap}
+  .cardstage{display:grid;place-items:center;min-height:104px;margin:4px 0 12px}
+  .sortcard{background:#fff;border:2px solid var(--brand);border-radius:var(--r);padding:16px 20px;box-shadow:var(--sh2);text-align:center;cursor:grab;touch-action:none;max-width:330px;width:100%}
+  .sortcard .acct{font-size:19px;font-weight:800}
+  .sortcard .gp{font-size:11.5px;color:var(--soft);font-weight:700;margin-top:2px}
+  .sortcard.flygood{animation:flygood .42s ease forwards} .sortcard.shake{animation:shake .4s}
+  .zones{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  @media(max-width:680px){ .zones{grid-template-columns:repeat(2,1fr)} }
+  .zone{border:1.5px dashed var(--line2);border-radius:var(--r);padding:12px 9px;text-align:center;cursor:pointer;transition:.12s;background:var(--panel2);min-height:58px;display:flex;flex-direction:column;justify-content:center}
+  .zone .zt{font-weight:800;font-size:13.5px} .zone .zh{font-size:10px;color:var(--soft);margin-top:2px;line-height:1.2}
+  .zone[data-c=Asset]{border-color:var(--asset)} .zone[data-c=Asset] .zt{color:var(--asset)}
+  .zone[data-c=Liability]{border-color:var(--liab)} .zone[data-c=Liability] .zt{color:var(--liab)}
+  .zone[data-c=Equity]{border-color:var(--equity)} .zone[data-c=Equity] .zt{color:var(--equity)}
+  .zone[data-c=Revenue]{border-color:var(--rev)} .zone[data-c=Revenue] .zt{color:var(--rev)}
+  .zone[data-c=Expense]{border-color:var(--exp)} .zone[data-c=Expense] .zt{color:var(--exp)}
+  .zone[data-c=Dividend]{border-color:var(--div)} .zone[data-c=Dividend] .zt{color:var(--div)}
+  .zone[data-c=Contra]{border-color:var(--contra)} .zone[data-c=Contra] .zt{color:var(--contra)}
+  .zone:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+  .zone.drop-over{background:var(--brand-soft);border-style:solid;transform:translateY(-2px)}
+  .zone.zgood{background:var(--good-bg);border-color:var(--good);border-style:solid}
+  .zone.zbad{background:var(--wrong-bg);border-color:var(--wrong);border-style:solid;animation:shake .4s}
+  .contrasec{margin-top:13px;padding-top:12px;border-top:1px dashed var(--line2)}
+  .contrasec .cl{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--contra);margin-bottom:6px}
+
+  /* ---- rules ---- */
+  .rules{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+  @media(max-width:680px){ .rules{grid-template-columns:1fr} }
+  .rcol{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .rcol .rh{padding:9px;font-weight:800;text-align:center;color:#fff;font-size:14px}
+  .rcol.deb .rh{background:var(--debit)} .rcol.cre .rh{background:var(--credit)}
+  .rcol .rb{padding:11px;font-size:13px}
+  .updown{font-size:12.5px;font-weight:800;margin-bottom:6px} .updown .u{color:var(--good)} .updown .dn{color:var(--wrong)}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 9px;font-size:11.5px;font-weight:700;margin:2px 4px 0 0}
+  .qcard{border:1px solid var(--line);border-radius:var(--r);padding:13px;margin:8px 0;background:var(--panel2)}
+  .qq{font-weight:800;font-size:14px;margin-bottom:9px} .qq b{color:var(--brand)}
+  .dc{display:flex;gap:9px}
+  .dcbtn{flex:1;padding:11px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;font-weight:800;font-size:13.5px;cursor:pointer;transition:.12s}
+  .dcbtn[data-v=D]{color:var(--debit)} .dcbtn[data-v=C]{color:var(--credit)}
+  .dcbtn:hover{border-color:var(--brand)}
+  .dcbtn.good{background:var(--good-bg);border-color:var(--good);color:#137a51} .dcbtn.bad{background:var(--wrong-bg);border-color:var(--wrong);color:#bb3658;animation:shake .4s}
+  .dcbtn:disabled{cursor:default}
+
+  /* ---- cycle order task ---- */
+  .orderwrap{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  @media(max-width:760px){ .orderwrap{grid-template-columns:1fr} }
+  .opool,.obucket{border:1px solid var(--line);border-radius:var(--r);padding:10px;min-height:60px;background:var(--panel2)}
+  .obucket{border-style:dashed}
+  .obucket.over{background:var(--brand-soft);border-color:var(--brand)}
+  .obucket .bt{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand);margin-bottom:7px}
+  .ochip{display:inline-block;background:#fff;border:1px solid var(--line2);border-radius:var(--rs);padding:7px 11px;margin:3px;font-weight:700;font-size:12.5px;cursor:grab;touch-action:none}
+  .ochip.placed-ok{border-color:var(--good);background:var(--good-bg);color:#137a51}
+  .ochip.placed-bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  .sortsec{margin-bottom:11px}
+  .sortsec .ss{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--brand);margin-bottom:5px}
+  .oslot{display:flex;align-items:center;gap:9px;border:1.5px dashed var(--line2);border-radius:var(--rs);padding:7px 10px;margin:5px 0;background:var(--panel2);min-height:40px}
+  .oslot .onum{width:24px;height:24px;flex:0 0 24px;border-radius:var(--rs);background:var(--brand-soft);color:var(--brand);font-weight:800;font-size:12px;display:grid;place-items:center}
+  .oslot.filled{border-style:solid;border-color:var(--good);background:var(--good-bg)}
+  .oslot.over{border-color:var(--wrong);background:var(--wrong-bg)}
+  .oslot.drop-over{border-color:var(--brand);background:var(--brand-soft);border-style:solid}
+  .oslot .ofill{font-weight:700;font-size:13px;color:#137a51}
+  .osec{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin:12px 0 3px}
+  .learnbox{border:1px solid var(--line);border-radius:var(--rs);margin-bottom:12px;background:var(--panel2)}
+  .learnbox summary{cursor:pointer;font-weight:800;font-size:13px;padding:10px 12px;color:var(--brand);list-style:none}
+  .learnbox summary::-webkit-details-marker{display:none}
+  .learngrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 12px 12px}
+  @media(max-width:680px){ .learngrid{grid-template-columns:1fr} }
+  .lc{font-size:12.5px;color:var(--soft);line-height:1.4;background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+  .lc b{color:var(--ink)}
+  .tryrow{margin-top:7px}
+  .btn.sm.tryb.done{background:var(--good-bg);color:#137a51;border-color:#9bd9bd}
+  .tray{border:1.5px dashed var(--line2);border-radius:var(--rs);padding:10px;margin-bottom:12px;background:#fff}
+  .tray.drop-over,.traybody.drop-over{outline:2px dashed var(--brand);outline-offset:2px;border-radius:var(--rs)}
+  .trayh{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--soft2);margin-bottom:7px}
+  .traybody{display:flex;flex-wrap:wrap;gap:6px;min-height:36px}
+  .achip{display:inline-block;background:#fff;border:1.5px solid var(--line2);border-radius:var(--rs);padding:7px 11px;font-weight:700;font-size:12.5px;cursor:grab;touch-action:none;user-select:none}
+  .achip.placed{border-color:var(--brand);background:var(--brand-soft);color:var(--brand)}
+  .achip.ok{border-color:var(--good);background:var(--good-bg);color:#137a51}
+  .achip.bad{border-color:var(--wrong);background:var(--wrong-bg);color:#bb3658}
+  .dzones{display:grid;gap:9px}
+  .dzone{border:1.5px dashed var(--line2);border-radius:var(--rs);padding:9px;background:var(--panel2);min-height:62px}
+  .dzone.drop-over{border-color:var(--brand);background:var(--brand-soft)}
+  .dzt{font-weight:800;font-size:12.5px;text-align:center;margin-bottom:6px}
+  .dzbody{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+  .twoform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){ .twoform{grid-template-columns:1fr} }
+  .fcol{border:1px solid var(--line);border-radius:var(--rs);padding:10px;background:var(--panel2)}
+  .fcolh{font-weight:800;font-size:12px;text-align:center;padding:5px;border-radius:var(--rs);margin-bottom:8px;color:#fff}
+  .fcolh.deb{background:var(--debit)} .fcolh.cre{background:var(--credit)}
+  .farow{display:flex;gap:5px;margin-bottom:6px;align-items:center}
+  .farow .facc{flex:1;min-width:0;font-size:12px;padding:5px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff}
+  .farow .famt{width:88px;font-size:12px;padding:5px;border:1px solid var(--line2);border-radius:var(--rs);font-family:var(--mono);text-align:right}
+  .farow .rm{flex:0 0 25px} .farow .rmsp{flex:0 0 25px;width:25px;display:inline-block}
+  .fbtable td{vertical-align:middle;padding:4px}
+  .fbtable select,.fbtable input{width:100%;font-size:12px;padding:5px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff}
+  .fbtable input{font-family:var(--mono);text-align:right}
+  .fbtable input:disabled{background:#eef0f5;color:#b6bccb}
+
+  /* ---- two forms ---- */
+  .forms{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  @media(max-width:680px){ .forms{grid-template-columns:1fr} }
+  .formcard{border:1px solid var(--line);border-radius:var(--r);padding:14px;background:#fff}
+  .formcard .ft{font-size:11.5px;font-weight:800;text-transform:uppercase;color:var(--brand);margin-bottom:9px;letter-spacing:.04em}
+  .hentry{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+  .hside{font-family:var(--mono);font-size:13px}
+  .hside .lab{color:var(--soft2);font-weight:700}
+  .ventry{font-family:var(--mono);font-size:13.5px;line-height:1.9}
+  .ventry .cr{padding-left:32px}
+  .ventry .amt{float:right}
+
+  /* ---- transaction trail ---- */
+  .trail{display:flex;gap:4px;overflow-x:auto;padding:22px 2px 10px;-webkit-overflow-scrolling:touch}
+  .tnode{flex:0 0 auto;width:42px;display:flex;flex-direction:column;align-items:center;cursor:pointer}
+  .tnode .dot{width:30px;height:30px;border-radius:var(--rs);display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--panel2);color:var(--soft);border:1.5px solid var(--line2)}
+  .tnode .dd{font-size:9px;color:var(--soft2);margin-top:3px;font-weight:700;white-space:nowrap}
+  .tnode.done .dot{background:var(--good);color:#fff;border-color:var(--good)}
+  .tnode.cur .dot{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 8px rgba(58,80,201,.4)}
+  .tnode{position:relative}
+  .tnode .paw{position:absolute;top:-14px;font-size:13px;animation:bob .9s ease-in-out infinite;display:none}
+  .tnode.cur .paw{display:block}
+  .tnode:not(.reached){cursor:not-allowed;opacity:.55}
+
+  /* ---- transaction card ---- */
+  .tlabel{font-size:11.5px;font-weight:800;letter-spacing:.04em;color:var(--soft2);text-transform:uppercase}
+  .tdate{font-size:20px;font-weight:800;color:var(--brand);letter-spacing:-.3px;margin:3px 0 4px}
+  .tdesc{font-size:16.5px;line-height:1.5;font-weight:600;background:var(--brand-soft);border-left:4px solid var(--brand);border-radius:0 var(--rs) var(--rs) 0;padding:11px 14px;margin-top:8px;color:var(--ink)}
+
+  /* ---- steps ---- */
+  .step{border:1px solid var(--line);border-radius:var(--r);margin-top:11px;overflow:hidden;transition:.16s}
+  .step.hidden{display:none}
+  .step.locked{opacity:.5;background:var(--panel2)}
+  .step.active{border-color:var(--brand);box-shadow:0 3px 14px rgba(58,80,201,.14);background:#fff}
+  .step.done{background:var(--good-bg);border-color:var(--good-line)}
+  .shead{display:flex;align-items:center;gap:9px;padding:12px 14px;font-weight:800;font-size:14px}
+  .shead .sn{width:22px;height:22px;border-radius:var(--rs);display:grid;place-items:center;font-size:11px;font-weight:800;background:var(--panel3);color:var(--soft);flex:0 0 22px}
+  .step.active .shead .sn{background:var(--brand);color:#fff}
+  .step.done .shead{color:#137a51} .step.done .shead .sn{background:var(--good);color:#fff}
+  .sbody{padding:0 14px 14px}
+  .ssum{font-size:13px;color:#137a51;padding:0 14px 12px;margin-top:-3px}
+  .ssum .pp{display:inline-block;background:#fff;border:1px solid var(--good-line);border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;margin:3px 5px 0 0;color:#137a51}
+
+  /* ---- identify ---- */
+  .yn{display:flex;gap:10px}
+  .ynb{flex:1;padding:13px;border:1px solid var(--line2);border-radius:var(--r);background:#fff;cursor:pointer;text-align:left;transition:.12s}
+  .ynb .yt{font-weight:800;font-size:14.5px} .ynb .yd{font-size:11.5px;color:var(--soft);margin-top:2px}
+  .ynb.yes .yt{color:var(--good)} .ynb.no .yt{color:var(--wrong)}
+  .ynb:hover{border-color:var(--brand);transform:translateY(-1px)}
+  .ynb.pg{background:var(--good-bg);border-color:var(--good)} .ynb.pb{background:var(--wrong-bg);border-color:var(--wrong);animation:shake .4s}
+  .ynb:disabled{cursor:default} .ynb.pg:disabled,.ynb.pb:disabled{opacity:1}
+
+  /* ---- DEALER analysis #4 ---- */
+  .dealer{display:grid;grid-template-columns:repeat(3,minmax(84px,1fr)) 24px repeat(3,minmax(84px,1fr));gap:6px;align-items:start;overflow-x:auto;padding-bottom:4px;margin:8px 0}
+  .dlbar{text-align:center;font-weight:800;font-size:10.5px;color:#fff;padding:6px 3px;border-radius:var(--rs) var(--rs) 0 0;line-height:1.2}
+  .dlbar.deb{background:var(--debit)} .dlbar.cre{background:var(--credit)}
+  .deqcol{align-self:center;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:var(--soft2)}
+  .dcolh{border-radius:0;padding:6px 3px;text-align:center;color:#fff;font-weight:800;font-size:10.5px;line-height:1.15}
+  .dcell{border:1px solid var(--line);border-top:none;border-radius:0 0 var(--rs) var(--rs);padding:6px 5px;background:var(--panel2)}
+  .dcol.div .dcolh{background:var(--div)} .dcol.exp .dcolh{background:var(--exp)} .dcol.ast .dcolh{background:var(--asset)}
+  .dcol.lia .dcolh{background:var(--liab)} .dcol.eqt .dcolh{background:var(--equity)} .dcol.rev .dcolh{background:var(--rev)}
+  .danrow{margin-bottom:7px;padding-bottom:7px;border-bottom:1px dashed var(--line)}
+  .danrow:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+  .danrow select{width:100%;font-family:inherit;font-size:11px;padding:5px 4px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;margin-bottom:5px}
+  .iod{display:flex;flex-direction:column;gap:4px}
+  .iod .iodb{display:block;width:100%;text-align:center;font-size:11px;font-weight:700;border:1px solid var(--line2);border-radius:var(--rs);padding:5px 3px;cursor:pointer;background:#fff;color:var(--soft)}
+  .iod .iodb.up.sel{background:var(--good-bg);border-color:var(--good);color:#137a51} .iod .iodb.dn.sel{background:var(--wrong-bg);border-color:var(--wrong);color:#bb3658}
+
+  /* ---- journalize ---- */
+  .je{width:100%;border-collapse:collapse;font-size:13.5px}
+  .je th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft2);text-align:left;padding:6px 7px;border-bottom:2px solid var(--line2);font-weight:800}
+  .je th.r{text-align:right} .je td{padding:5px 7px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .je select,.je input{font-family:inherit;font-size:13.5px;padding:7px 8px;border:1px solid var(--line2);border-radius:var(--rs);width:100%;background:#fff;color:var(--ink)}
+  .je input.amt{text-align:right;font-variant-numeric:tabular-nums}
+  .je select:focus,.je input:focus,.datepick:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .datepick{font-family:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;color:var(--ink)}
+  .jtot td{border-top:2px solid var(--ink);border-bottom:none;padding-top:8px;font-weight:800;font-variant-numeric:tabular-nums}
+  .jtot.ok td{color:var(--good)} .jtot.bad td{color:var(--wrong)}
+  .balline{font-size:12.5px;font-weight:800;padding:7px 11px;border-radius:var(--rs);margin-top:8px;display:inline-block}
+  .balline.ok{background:var(--good-bg);color:#137a51} .balline.bad{background:var(--warn-bg);color:#8a5a13}
+  .rm{background:var(--wrong-bg);border:1px solid var(--wrong-line);color:#bb3658;width:25px;height:25px;border-radius:var(--rs);font-weight:800;cursor:pointer}
+
+  /* ---- posting ---- */
+  .postlead{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--soft2);margin:2px 0 6px}
+  .jentry{border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;max-width:440px;font-family:var(--mono)}
+  .jentry .jh{display:grid;grid-template-columns:1fr 92px 92px;background:var(--panel2);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--soft2);padding:6px 12px;letter-spacing:.04em;font-family:-apple-system,sans-serif}
+  .jentry .jr{display:grid;grid-template-columns:1fr 92px 92px;align-items:center;padding:6px 12px;border-top:1px solid var(--line);font-size:13px}
+  .jentry .jr .acn{font-weight:700}
+  .jentry .jr.cr .acn{padding-left:26px;color:#475068}
+  .chip{justify-self:end;background:#fff;border:1.5px solid var(--brand);color:var(--brand);font-weight:800;font-size:12.5px;padding:4px 10px;border-radius:var(--rs);cursor:grab;touch-action:none;font-variant-numeric:tabular-nums;box-shadow:var(--sh);font-family:-apple-system,sans-serif}
+  .chip.cr{border-color:var(--credit);color:var(--credit)} .chip:active{cursor:grabbing}
+  .chip.placed{background:var(--panel3);border-color:var(--line2);color:var(--soft2);box-shadow:none;cursor:default;text-decoration:line-through}
+  .ledgerpick{display:flex;align-items:center;gap:8px;margin:14px 0 8px;flex-wrap:wrap}
+  .ledgerpick select{font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff}
+  .taccts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px}
+  .tacct{border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:#fff;max-width:280px}
+  .tacct .tnm{text-align:center;font-weight:800;font-size:13px;padding:7px;background:var(--panel2);border-bottom:2px solid var(--ink)}
+  .tbd{display:grid;grid-template-columns:1fr 1fr}
+  .tcell{min-height:58px;padding:6px}
+  .tcell.dr{border-right:1.5px solid var(--ink)}
+  .tcell .cap{font-size:9.5px;font-weight:800;text-transform:uppercase;color:var(--soft2);text-align:center;margin-bottom:4px;letter-spacing:.04em}
+  .tcell .ent{font-size:12.5px;padding:1px 4px;display:flex;justify-content:space-between;gap:6px;align-items:baseline}
+  .tcell .entd{color:#9aa3b8;font-size:10px;font-weight:600}
+  .tcell .enta{font-variant-numeric:tabular-nums}
+  .tcell .ent.fresh{color:#137a51;font-weight:800}
+  .tcell .ent.bb{color:#9098ad;font-weight:700} .tcell .ent.bb .entd{color:#9098ad}
+  .tcell .ent.eb{border-top:1.5px solid var(--ink);margin-top:3px;padding-top:3px;font-weight:800;color:var(--ink)} .tcell .ent.eb .entd{color:var(--brand);font-weight:800}
+  .tcell .ent.adjent,.tcell .ent.adjent .entd{color:#1f6fd6;font-weight:700}
+  .tcell .ent.closeent,.tcell .ent.closeent .entd{color:#d23b3b;font-weight:700}
+  .tcell.drop{cursor:copy} .tcell.drop-over{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand)}
+  .tcell.hit{animation:flashGood .5s} .tcell.miss{animation:flashBad .5s}
+  .postcount{font-size:12.5px;font-weight:700;color:var(--soft);margin-top:9px}
+  .dragghost{position:fixed;z-index:9999;pointer-events:none;opacity:.95;transform:scale(1.04)} .dragsrc{opacity:.3}
+
+  /* ---- trial balance builder ---- */
+  .ledgerview{border:1px solid var(--line);border-radius:var(--r);background:var(--panel2);padding:10px;margin-bottom:12px}
+  .tbtable{width:100%;border-collapse:collapse;font-size:13px}
+  .tbtable th{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft2);padding:6px;border-bottom:2px solid var(--line2);font-weight:800;text-align:right}
+  .tbtable th:first-child{text-align:left}
+  .tbtable td{padding:4px 6px;border-bottom:1px solid var(--line)}
+  .tbtable td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .tbtable select{font-family:inherit;font-size:12.5px;padding:5px;border:1px solid var(--line2);border-radius:var(--rs);width:100%;background:#fff}
+  .tbtable input.amt{font-family:inherit;font-size:12.5px;padding:5px 7px;border:1px solid var(--line2);border-radius:var(--rs);width:100%;text-align:right;font-variant-numeric:tabular-nums}
+  .tbtable th:nth-child(2),.tbtable th:nth-child(3),.tbtable td:nth-child(2),.tbtable td:nth-child(3){width:94px}
+  .tbtable input.amt:focus,.tbtable select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .tbtable input.amt.ok{border-color:var(--good);background:var(--good-bg)} .tbtable input.amt.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  .tbtable tr.totrow td{border-top:2px solid var(--ink);font-weight:800;padding-top:8px;font-variant-numeric:tabular-nums}
+  .tbtable tr.totrow.ok td{color:var(--good)} .tbtable tr.totrow.bad td{color:var(--wrong)}
+  .tbtable .delr{background:var(--wrong-bg);border:1px solid var(--wrong-line);color:#bb3658;width:22px;height:22px;border-radius:var(--rs);font-weight:800;cursor:pointer}
+  .totbadge{font-weight:800;font-size:13px;padding:6px 12px;border-radius:var(--rs);display:inline-block;margin-top:8px}
+  .totbadge.ok{background:var(--good-bg);color:#137a51} .totbadge.bad{background:var(--wrong-bg);color:#bb3658}
+
+  /* ---- financial statements ---- */
+  .fswrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}
+  @media(max-width:840px){ .fswrap{grid-template-columns:1fr} }
+  .atbpane{border:1px solid var(--line);border-radius:var(--r);background:var(--panel2);padding:11px;position:sticky;top:70px}
+  @media(max-width:840px){ .atbpane{position:static} }
+  .atbpane h4{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin-bottom:7px;font-weight:800}
+  .atbtable{width:100%;border-collapse:collapse;font-size:12px}
+  .atbtable td{padding:2px 4px} .atbtable td.r{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  .atbtable th{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--soft2);text-align:left;padding:3px 4px;border-bottom:1.5px solid var(--line2);font-weight:800} .atbtable th.r{text-align:right}
+  .atbtable tr.tt td{border-top:1.5px solid var(--ink);font-weight:800}
+  .fs{border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+  .fhd{background:var(--brand);color:#fff;text-align:center;padding:9px;font-weight:800;font-size:13px;line-height:1.3}
+  .fhd .fttl{display:block;font-size:16.5px;font-weight:800;margin:1px 0;letter-spacing:.3px}
+  .fhd small{display:block;font-weight:600;font-size:11px;opacity:.92}
+  .fsrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 13px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .fsrow:last-child{border-bottom:none}
+  .fsrow.ind{padding-left:26px;color:#475068} .fsrow.sub{color:var(--soft)}
+  .fsrow.tot{font-weight:800;border-top:1.5px solid var(--ink)}
+  .fsrow.grand{font-weight:800;border-top:2px solid var(--ink);border-bottom:3px double var(--ink);background:var(--panel2)}
+  .fsrow.head{font-weight:800;background:var(--panel2);color:var(--ink)}
+  .fsrow input.amt,.bsrow input.amt{font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line2);border-radius:var(--rs);width:118px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .fsrow.amtindent input.amt{margin-right:118px}
+  .eqpair{display:grid;grid-template-columns:56px 56px;gap:5px;align-items:center;flex:0 0 auto}
+  .bsrow .eqpair input.amt{flex:none;width:100%} .eqspacer{display:block;width:100%}
+  .fsrow input.amt:focus,.bsrow input.amt:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .fsrow input.amt.ok,.bsrow input.amt.ok{border-color:var(--good);background:var(--good-bg)} .fsrow input.amt.bad,.bsrow input.amt.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  .fsrow .sub2{display:flex;gap:6px;align-items:center}
+  .fsrow .paren{color:var(--soft2);font-weight:700}
+  /* T-shaped balance sheet */
+  .bst{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line)}
+  @media(max-width:680px){ .bst{grid-template-columns:1fr} }
+  .bscol{padding:0;display:flex;flex-direction:column;min-width:0}
+  .bsrow.pinbottom{margin-top:auto}
+  .fsrow input.amt:disabled,.bsrow input.amt:disabled{background:var(--panel2);color:var(--soft2);cursor:not-allowed}
+  .bscol.left{border-right:2px solid var(--ink)}
+  @media(max-width:680px){ .bscol.left{border-right:none;border-bottom:2px solid var(--ink)} }
+  .bscol .bh{background:var(--panel2);text-align:center;font-weight:800;font-size:12.5px;padding:7px;border-bottom:1.5px solid var(--ink);text-transform:uppercase;letter-spacing:.04em}
+  .bsrow{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 7px;font-size:12.5px;border-bottom:1px solid var(--line)}
+  .bsrow > span:first-child{flex:1 1 auto;min-width:0;line-height:1.25}
+  .bsrow.ind{padding-left:15px;color:#475068;font-size:11px}
+  .bsrow.sub{color:var(--soft);font-size:12px}
+  .bsrow.tot{font-weight:800;border-top:1.5px solid var(--ink);background:var(--panel2);font-size:11px}
+  .bsrow.tot > span:first-child{white-space:nowrap} .bsrow.tot input.amt{flex:0 0 56px;width:56px}
+  .bsrow input.amt{font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--line2);border-radius:var(--rs);flex:0 0 66px;width:66px;text-align:right;font-variant-numeric:tabular-nums}
+  .bsrow input.amt:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .bsrow input.amt.ok{border-color:var(--good);background:var(--good-bg)} .bsrow input.amt.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  .bsrow .two{display:flex;gap:5px}
+  .bsrow .two .sm{width:78px}
+  .fstabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .fstab{padding:7px 13px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff;font-weight:800;font-size:12.5px;cursor:pointer}
+  .fstab.cur{background:var(--brand);border-color:var(--brand);color:#fff}
+  .fstab.locked,.fstab:disabled{opacity:.45;cursor:not-allowed;background:var(--panel2)}
+  .evfoot{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:14px}
+  .fstab.done{border-color:var(--good);color:#137a51}
+  .fstab.done{border-color:var(--good);color:#137a51}
+  .fstab.done.cur{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+  /* ---- map / stage 0 ---- */
+  .mapcanvas{position:relative;padding:8px 4px}
+  .mapnode{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;margin:9px 0;box-shadow:var(--sh);cursor:pointer;transition:.14s;position:relative}
+  .mapnode:hover{border-color:var(--brand);transform:translateX(3px)}
+  .mapnode.locked{opacity:.55;cursor:not-allowed}
+  .mapnode.done{border-left:4px solid var(--good)}
+  .mapnode.current{border-left:4px solid var(--brand);box-shadow:0 4px 16px rgba(58,80,201,.16)}
+  .mapnode .mi{width:44px;height:44px;flex:0 0 44px;border-radius:var(--r);display:grid;place-items:center;font-size:22px;background:var(--panel2)}
+  .mapnode.done .mi{background:var(--good-bg)} .mapnode.current .mi{background:var(--brand-soft)}
+  .mapnode .mt{font-weight:800;font-size:15.5px} .mapnode .md{font-size:12.5px;color:var(--soft);margin-top:1px}
+  .mapnode .mstat{margin-left:auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:4px 9px;border-radius:999px}
+  .mstat.done{background:var(--good-bg);color:#137a51} .mstat.current{background:var(--brand-soft);color:var(--brand)} .mstat.locked{background:var(--panel3);color:var(--soft2)} .mstat.open{background:var(--warn-bg);color:#8a5a13}
+  .mapconn{height:14px;width:2px;background:var(--line2);margin-left:38px}
+  .savestatus{font-size:12.5px;color:var(--soft);background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:9px 13px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+
+  /* ---- identity overlay ---- */
+  .overlay{position:fixed;inset:0;background:rgba(20,28,52,.55);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+  .overlay.show{display:flex}
+  .idcard{background:#fff;border-radius:var(--rl);max-width:430px;width:100%;box-shadow:var(--sh2);overflow:hidden}
+  .idhd{background:var(--brand);color:#fff;padding:18px 20px}
+  .idhd h2{font-size:19px;font-weight:800} .idhd p{font-size:13px;opacity:.92;margin-top:3px}
+  .idbody{padding:18px 20px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--soft);margin-bottom:4px}
+  .field input{width:100%;font-family:inherit;font-size:14.5px;padding:10px 12px;border:1px solid var(--line2);border-radius:var(--rs);background:#fff}
+  .field input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+
+  /* ---- modal ---- */
+  .modal{position:fixed;inset:0;background:rgba(20,28,52,.5);z-index:80;display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow-y:auto}
+  .modal.show{display:flex}
+  .sheet{background:#fff;border-radius:var(--rl);max-width:760px;width:100%;box-shadow:var(--sh2)}
+  .shd{display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:#fff;border-radius:var(--rl) var(--rl) 0 0}
+  .shd h3{font-size:15.5px;font-weight:800;flex:1}
+  .xb{width:28px;height:28px;border-radius:var(--rs);border:1px solid var(--line2);background:#fff;font-size:15px;font-weight:800;color:var(--soft);cursor:pointer}
+  .sbody2{padding:18px}
+
+  /* shared T-account read-only listing */
+  .je2{width:100%;border-collapse:collapse;font-size:13px}
+  .je2 th{font-size:10.5px;text-transform:uppercase;color:var(--soft2);text-align:left;padding:6px;border-bottom:2px solid var(--line2);font-weight:800}
+  .je2 th.r{text-align:right} .je2 td{padding:4px 6px;border-bottom:1px solid var(--line)}
+  .je2 td.r{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(18px);background:var(--ink);color:#fff;padding:10px 17px;border-radius:999px;font-weight:700;font-size:13px;z-index:120;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--sh2)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .victory{text-align:center;padding:8px} .victory .trophy{font-size:50px} .scorebig{font-size:38px;font-weight:800;color:var(--brand);margin:6px 0}
+
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+  @keyframes flygood{to{opacity:0;transform:translateY(-26px) scale(.82)}}
+  @keyframes flashGood{0%{background:var(--good-bg)}100%{background:transparent}}
+  @keyframes flashBad{0%{background:var(--wrong-bg)}100%{background:transparent}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+  /* ---- print (#22) ---- */
+  #printArea{display:none}
+  @media print{
+    body{background:#fff}
+    .topbar,.sidemap,.modal,.overlay,.toast,#main{display:none!important}
+    #printArea{display:block!important;padding:0;max-width:none}
+    .app{display:block;padding:0}
+    .prsheet{font-size:12px}
+    .prsheet h1{font-size:18px} .prsheet h2{font-size:14px;margin-top:14px;border-bottom:1px solid #000;padding-bottom:3px}
+    .prsheet table{width:100%;border-collapse:collapse;font-size:11px} .prsheet td,.prsheet th{padding:2px 5px;border-bottom:1px solid #ccc;text-align:left}
+    .prsheet td.r,.prsheet th.r{text-align:right}
+    .prmeta{display:flex;gap:24px;margin:8px 0;font-size:12px}
+  }
+  /* analyze redesign + journalize drag */
+  .dealernote{margin:0 0 12px auto;max-width:390px;font-size:11px;line-height:1.45;color:var(--soft);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 11px}
+  .danblock{border:1px solid var(--line2);border-radius:8px;padding:6px;margin-bottom:7px;background:#fff}
+  .danblock.added{border:2px solid var(--brand);box-shadow:0 1px 5px rgba(58,80,201,.14)}
+  .danblktop{display:flex;gap:4px;align-items:center}
+  .danblktop select{flex:1;min-width:0;font-family:inherit;font-size:11px;padding:4px;border:1px solid var(--line2);border-radius:6px;background:#fff}
+  .danx{flex:0 0 22px;width:22px;height:24px;background:var(--wrong-bg);border:1px solid var(--wrong-line);color:#bb3658;border-radius:6px;font-weight:800;cursor:pointer;font-size:13px;line-height:1}
+  .danamtwrap{margin-top:5px}
+  .danamtlbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--soft2);font-weight:800;margin-bottom:2px}
+  .danamtrow{display:flex;align-items:center;gap:4px}
+  .dancur{font-weight:800;color:var(--soft);font-size:13px}
+  .danamt{flex:1;min-width:0;font-family:inherit;font-size:12.5px;padding:5px;border:1px solid var(--line2);border-radius:6px;text-align:right;font-variant-numeric:tabular-nums}
+  .danamt:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+  .danadd{width:100%;padding:4px;font-size:10.5px;margin-top:2px}
+  .anbalbox{margin-top:12px;padding:9px 12px;border-radius:8px;font-size:13px;border:1.5px solid var(--line2);background:var(--panel2)}
+  .anbalbox.ok{border-color:var(--good);background:var(--good-bg);color:#137a51;font-weight:700}
+  .anbalbox.bad{border-color:var(--wrong);background:var(--wrong-bg)}
+  .jdragwrap{margin-top:6px}
+  .jdsrc{background:var(--panel2);border:1px dashed var(--line2);border-radius:10px;padding:10px;margin-bottom:12px}
+  .jdsrch{font-size:12px;color:var(--soft);font-weight:700;margin-bottom:8px}
+  .jdchips{display:flex;flex-wrap:wrap;gap:8px;min-height:34px}
+  .jdchip{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--brand);border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:700;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.08);touch-action:none;user-select:none}
+  .jdchip .jdcm{font-variant-numeric:tabular-nums;color:var(--brand);font-weight:800}
+  .jdboxes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .jdbox{border:2px solid var(--line2);border-radius:10px;overflow:hidden;background:#fff}
+  .jdboxh{text-align:center;font-weight:800;font-size:12.5px;padding:6px;color:#fff}
+  .jdboxh.deb{background:var(--debit)} .jdboxh.cre{background:var(--credit)}
+  .jdboxbody{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:58px}
+  .jdph{font-size:11px;color:var(--soft2);text-align:center;padding:6px}
+  .jdbox.drop-over{box-shadow:inset 0 0 0 3px var(--brand);border-color:var(--brand)}
+  .jdentrybox{margin-top:14px}
+  .jdetitle{font-weight:800;font-size:12.5px;color:var(--soft);margin-bottom:6px}
+  .jde{border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .jdehead{display:grid;grid-template-columns:1fr 92px 92px;background:var(--panel2);font-size:10.5px;font-weight:800;text-transform:uppercase;color:var(--soft2);padding:6px 10px;letter-spacing:.04em}
+  .jderow{display:grid;grid-template-columns:1fr 92px 92px;padding:5px 10px;border-top:1px solid var(--line);font-size:13px}
+  .jderow .jdecr{padding-left:22px;color:#475068} .jdeamt{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .tabsrow{display:flex;gap:14px;align-items:flex-start;margin-top:10px}
+  .tabsleft{flex:1 1 auto;min-width:0}
+  .tabsleft .fstabs{margin-top:0}
+  .dealerbox{flex:0 0 290px;max-width:290px;font-size:11px;line-height:1.45;color:var(--soft);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+  .dealerbox b{color:var(--ink)}
+  @media(max-width:860px){ .tabsrow{flex-direction:column} .dealerbox{flex:1 1 100%;max-width:none} }
+  .jdchip .jddec{font-size:10.5px;font-weight:800;color:#bb3658;background:var(--wrong-bg);border-radius:5px;padding:1px 6px}
+  .jdchip .jdinc{font-size:10.5px;font-weight:800;color:#137a51;background:var(--good-bg);border-radius:5px;padding:1px 6px}
+  .tbwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,430px);gap:16px;align-items:start}
+  .tbledger{max-height:78vh;overflow-y:auto;padding-right:4px}
+  .tbledgerh{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--brand)}
+  .tbinput{position:sticky;top:70px}
+  @media(max-width:920px){ .tbwrap{grid-template-columns:1fr} .tbledger{max-height:48vh} .tbinput{position:static} }
+  input[inputmode="numeric"],.danamt{font-family:var(--mono)!important}
+  .prfs{border:1px solid #333;border-radius:6px;overflow:hidden;margin-top:6px;max-width:560px}
+  .prfs .prfhd{background:#eef0f6;text-align:center;padding:8px 8px 7px;border-bottom:1.5px solid #333}
+  .prfs .prco{font-weight:800;font-size:13px}
+  .prfs .prtt{font-size:14.5px;font-weight:800;margin-top:1px}
+  .prfs .prpd{font-size:10.5px;color:#555;font-style:italic;margin-top:1px}
+  .prfs table{width:100%;border-collapse:collapse;font-size:12.5px;font-family:var(--mono)}
+  .prfs td{padding:2.5px 2px;vertical-align:bottom}
+  .prfs td.lbl{padding-left:12px;white-space:nowrap}
+  .prfs tr.sec td.lbl{font-weight:800;padding-top:8px}
+  .prfs tr.subh td.lbl{font-weight:800;padding-top:3px}
+  .prfs td.lbl.ind{padding-left:30px}
+  .prfs td.c1{width:86px;text-align:right;padding-right:18px;font-variant-numeric:tabular-nums}
+  .prfs td.c2{width:100px;text-align:right;padding-right:12px;font-variant-numeric:tabular-nums}
+  .prfs .u1{border-bottom:1.4px solid #000;padding-bottom:1px}
+  .prfs .u2{border-bottom:3px double #000;padding-bottom:1px}
+  .tourspot{position:fixed;z-index:10000;border-radius:9px;background:transparent;box-shadow:0 0 0 3px var(--brand),0 0 0 9999px rgba(10,13,32,.72);cursor:pointer;animation:tourpulse 1.15s ease-in-out infinite}
+  @keyframes tourpulse{0%,100%{box-shadow:0 0 0 3px var(--brand),0 0 0 9999px rgba(10,13,32,.72)}50%{box-shadow:0 0 0 6px rgba(58,80,201,.6),0 0 0 9999px rgba(10,13,32,.72)}}
+  .tourcall{position:fixed;z-index:10002;width:272px;background:#fff;border-radius:13px;box-shadow:0 20px 55px rgba(0,0,0,.45);padding:15px 16px;border:1px solid var(--line)}
+  .tourcall.shake{animation:tshake .4s}
+  @keyframes tshake{0%,100%{margin-left:0}25%{margin-left:-7px}75%{margin-left:7px}}
+  .tcstep{font-size:10.5px;font-weight:800;text-transform:uppercase;color:var(--brand);letter-spacing:.05em}
+  .tctitle{font-size:15.5px;font-weight:800;margin:3px 0}
+  .tcbody{font-size:12.5px;color:var(--soft);line-height:1.45}
+  .tchint{font-size:11.5px;font-weight:700;color:var(--ink);margin-top:9px;background:var(--good-bg);padding:6px 9px;border-radius:7px}
+  .tcskip{margin-top:11px;font-size:11px;background:none;border:none;color:var(--soft2);text-decoration:underline;cursor:pointer;padding:0;display:block}
+  .tourcall.done{text-align:center} .tourcall.done .tctitle{color:#137a51} .tourcall .tcdone{margin-top:10px}
+</style>
+</head>
+<body>
+<div id="printArea"></div>
+
+<header class="topbar">
+  <div class="leftzone">
+    <div class="who" id="whoChip" style="display:none"></div>
+    <div class="sesstimer" id="sessTimer" style="display:none"></div>
+  </div>
+  <div class="brand"><span class="pw">🐾</span><div class="brandtxt"><div class="bt1">Pawsome Accounting Quest</div><div class="bt2">ACCTG 2100 · Introduction to Financial Accounting · Dr. Sunghee Kim</div></div></div>
+  <div class="rightzone">
+    <div class="stat"><span class="lbl">Score</span><span class="scorev" id="scoreVal">0/100</span></div>
+    <div class="prog"><span class="lbl">Progress</span><div class="pbar"><i id="progBar" style="width:0%"></i></div><span class="progn" id="progNum">0%</span></div>
+    <button class="tbtn" id="ledgerBtn">📒 Ledger</button>
+    <button class="tbtn" id="journalBtn">📓 Journal</button>
+    <button class="tbtn save" id="saveBtn">Save</button>
+    <button class="tbtn reset" id="resetBtn">Reset</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidemap" id="sidemap"></aside>
+  <main id="main"></main>
+</div>
+<footer class="appfoot">ACCTG 2100 — Introduction to Financial Accounting · Instructor: Dr. Sunghee Kim · Pawsome Accounting Quest · for classroom use</footer>
+
+<div class="overlay" id="overlay">
+  <div class="idcard">
+    <div class="idhd"><h2>Welcome, future accountant! 🐾</h2><p>Tell us who you are so we can put your name on your work.</p></div>
+    <div class="idbody">
+      <div class="field"><label>University ID (uNID)</label><input id="idUnid" placeholder="u1234567" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label>First Name</label><input id="idFirst" placeholder="First name" autocomplete="off"></div>
+      <div class="field"><label>Last Name</label><input id="idLast" placeholder="Last name" autocomplete="off"></div>
+      <div class="fb" id="idfb"></div>
+      <button class="btn primary big" id="idStart" style="margin-top:6px">Start the Quest →</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="ledgerModal"><div class="sheet"><div class="shd"><h3>📒 General Ledger (T-accounts)</h3><button class="xb" id="ledgerClose">×</button></div><div class="sbody2" id="ledgerBody"></div></div></div>
+<div class="modal" id="journalModal"><div class="sheet"><div class="shd"><h3>📓 General Journal</h3><button class="xb" id="journalClose">×</button></div><div class="sbody2" id="journalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ===== verified data (Pawsome Pet Care, Inc.) ===== */
+const ACCOUNTS = [
+  {id:'cash',    name:'Cash',                              group:'Assets',       normal:'D'},
+  {id:'ar',      name:'Accounts Receivable',               group:'Assets',       normal:'D'},
+  {id:'sup',     name:'Supplies',                          group:'Assets',       normal:'D'},
+  {id:'ppi',     name:'Prepaid Insurance',                 group:'Assets',       normal:'D'},
+  {id:'equip',   name:'Equipment',                         group:'Assets',       normal:'D'},
+  {id:'accdep',  name:'Accumulated Depreciation - Equipment', group:'Contra-Asset', normal:'C'},
+  {id:'ap',      name:'Accounts Payable',                  group:'Liabilities',  normal:'C'},
+  {id:'unearned',name:'Unearned Service Revenue',          group:'Liabilities',  normal:'C'},
+  {id:'salpay',  name:'Salaries Payable',                  group:'Liabilities',  normal:'C'},
+  {id:'notes',   name:'Notes Payable',                     group:'Liabilities',  normal:'C'},
+  {id:'cs',      name:'Common Stock',                      group:'Equity',       normal:'C'},
+  {id:'re',      name:'Retained Earnings',                 group:'Equity',       normal:'C'},
+  {id:'div',     name:'Dividends',                         group:'Equity',       normal:'D'},
+  {id:'incsum',  name:'Income Summary',                    group:'Equity',       normal:'C'},
+  {id:'rev',     name:'Service Revenue',                   group:'Revenue',      normal:'C'},
+  {id:'salexp',  name:'Salaries Expense',                  group:'Expenses',     normal:'D'},
+  {id:'rentexp', name:'Rent Expense',                      group:'Expenses',     normal:'D'},
+  {id:'supexp',  name:'Supplies Expense',                  group:'Expenses',     normal:'D'},
+  {id:'advexp',  name:'Advertising Expense',               group:'Expenses',     normal:'D'},
+  {id:'utilexp', name:'Utilities Expense',                 group:'Expenses',     normal:'D'},
+  {id:'insexp',  name:'Insurance Expense',                 group:'Expenses',     normal:'D'},
+  {id:'depexp',  name:'Depreciation Expense',              group:'Expenses',     normal:'D'},
+];
+
+const EVENTS = [
+  {date:'Jan 2', isTxn:true, desc:"Maya Lopez and a few friends form the company. It issues common stock to them for $15,000 cash.",
+   lines:[['cash',15000,0],['cs',0,15000]]},
+  {date:'Feb 1', isTxn:true, desc:"The company buys a scooter and cart (Equipment) for $6,600: $1,600 cash now and a $5,000 note for the rest.",
+   lines:[['equip',6600,0],['cash',0,1600],['notes',0,5000]]},
+  {date:'Mar 4', isTxn:false, desc:"The company signs a contract to provide pet-sitting next month. No money changes hands yet.",
+   why:"A signed contract for the future is only a promise. No cash moved and nothing was used, so there is no transaction to record yet."},
+  {date:'Apr 3', isTxn:true, desc:"The company pays $1,200 cash for a 1-year insurance policy. The benefit is for the future, not used yet.",
+   lines:[['ppi',1200,0],['cash',0,1200]]},
+  {date:'May 10', isTxn:true, desc:"The company buys supplies (leashes, treats, waste bags) for $900 on account (pay later).",
+   lines:[['sup',900,0],['ap',0,900]]},
+  {date:'Jun 8', isTxn:true, desc:"A customer pays $700 cash in advance for grooming to be done later. No service is done yet.",
+   lines:[['cash',700,0],['unearned',0,700]]},
+  {date:'Jul 12', isTxn:true, desc:"The company walks dogs and receives $5,400 cash for the work.",
+   lines:[['cash',5400,0],['rev',0,5400]]},
+  {date:'Aug 15', isTxn:false, desc:"The company hires a part-time dog walker who will start work next week.",
+   why:"Hiring a person, by itself, changes no account. Nothing is recorded until the employee works or is paid."},
+  {date:'Sep 18', isTxn:true, desc:"The company performs $2,500 of pet-sitting on account; the customer will pay later.",
+   lines:[['ar',2500,0],['rev',0,2500]]},
+  {date:'Oct 22', isTxn:true, desc:"The company pays $800 cash for office rent.",
+   lines:[['rentexp',800,0],['cash',0,800]]},
+  {date:'Nov 26', isTxn:true, desc:"The company pays $500 cash to the supplier for part of the supplies bought in May.",
+   lines:[['ap',500,0],['cash',0,500]]},
+  {date:'Dec 30', isTxn:true, desc:"The board declares and pays a $400 cash dividend to the stockholders.",
+   lines:[['div',400,0],['cash',0,400]]},
+];
+
+const ADJ = [
+  {title:'Supplies used', why:"A December 31 count shows $300 of supplies on hand. The company had bought $900, so $600 was used up during the year.",
+   lines:[['supexp',600,0],['sup',0,600]]},
+  {title:'Insurance expired', why:"By December 31, $100 of the prepaid insurance has expired and is now an expense.",
+   lines:[['insexp',100,0],['ppi',0,100]]},
+  {title:'Depreciation of equipment', why:"Record $100 of depreciation expense on the equipment for the period (use Accumulated Depreciation, never credit Equipment).",
+   lines:[['depexp',100,0],['accdep',0,100]]},
+  {title:'Unearned revenue now earned', why:"By December 31, $300 of the $700 advance has been earned by providing service.",
+   lines:[['unearned',300,0],['rev',0,300]]},
+];
+
+const CLOSE = [
+  {title:'Close revenue', why:"Move all revenue into Income Summary to begin clearing the temporary accounts.",
+   lines:[['rev',8200,0],['incsum',0,8200]]},
+  {title:'Close expenses', why:"Move every expense into Income Summary in one combined entry.",
+   lines:[['incsum',1600,0],['rentexp',0,800],['supexp',0,600],['insexp',0,100],['depexp',0,100]]},
+  {title:'Close Income Summary (net income) to Retained Earnings', why:"Income Summary holds net income of $6,600. Move it to Retained Earnings.",
+   lines:[['incsum',6600,0],['re',0,6600]]},
+  {title:'Close Dividends to Retained Earnings', why:"Dividends is temporary too. Reduce Retained Earnings by the $400 paid to stockholders.",
+   lines:[['re',400,0],['div',0,400]]},
+];
+/* ===== constants ===== */
+const ACC={}; ACCOUNTS.forEach(function(a){ ACC[a.id]=a; });
+const TB_GROUPS=['Assets','Contra-Asset','Liabilities','Equity','Revenue','Expenses'];
+const CATS=[
+  {key:'Asset',label:'Asset',hint:'Owns / controls'},
+  {key:'Liability',label:'Liability',hint:'Owes to others'},
+  {key:'Equity',label:'Equity',hint:"Owners' claim"},
+  {key:'Revenue',label:'Revenue',hint:'Money earned'},
+  {key:'Expense',label:'Expense',hint:'Cost used up'},
+  {key:'Dividend',label:'Dividend',hint:'Paid to owners'}
+];
+const CLASSIFY=[
+  {id:'cash',cat:'Asset'},{id:'ar',cat:'Asset'},{id:'sup',cat:'Asset'},{id:'ppi',cat:'Asset'},{id:'equip',cat:'Asset'},
+  {id:'ap',cat:'Liability'},{id:'unearned',cat:'Liability'},{id:'notes',cat:'Liability'},
+  {id:'cs',cat:'Equity'},{id:'re',cat:'Equity'},
+  {id:'rev',cat:'Revenue'},
+  {id:'salexp',cat:'Expense'},{id:'rentexp',cat:'Expense'},{id:'supexp',cat:'Expense'},{id:'depexp',cat:'Expense'},
+  {id:'div',cat:'Dividend'},
+  {id:'accdep',cat:'Contra'}
+];
+const CYCLE_STEPS=[
+  {id:'ident',label:'Identification',grp:'during'},
+  {id:'anal',label:'Analysis',grp:'during'},
+  {id:'journ',label:'Journalizing',grp:'during'},
+  {id:'post',label:'Posting',grp:'during'},
+  {id:'utb',label:'Unadjusted Trial Balance',grp:'period'},
+  {id:'adje',label:'Adjusting Entries',grp:'period'},
+  {id:'atb',label:'Adjusted Trial Balance',grp:'period'},
+  {id:'fs',label:'Financial Statements',grp:'period'},
+  {id:'close',label:'Closing Entries',grp:'year'},
+  {id:'ptb',label:'Post-Closing Trial Balance',grp:'year'}
+];
+const CYCLE_GROUPS=[
+  {key:'during',title:'During the period',hint:'Every transaction, all period long'},
+  {key:'period',title:'End of the period',hint:'Monthly, quarterly, or yearly'},
+  {key:'year',title:'Year-end only',hint:'Just once, at year-end'}
+];
+const STAGES=[
+  {key:'map',group:'Start',title:'Quest Map',icon:'\u{1F5FA}'},
+  {key:'fc_eq',group:'Foundation Camp',title:'The Equation',icon:'\u2696'},
+  {key:'fc_sort',group:'Foundation Camp',title:'Account Types',icon:'\u25A4'},
+  {key:'fc_rules',group:'Foundation Camp',title:'Debit & Credit',icon:'\u00B1'},
+  {key:'fc_order',group:'Foundation Camp',title:'The Cycle Order',icon:'\u27F3'},
+  {key:'fc_forms',group:'Foundation Camp',title:'Entry Forms',icon:'\u2630'},
+  {key:'record',group:'Annual Event Path',title:'Record Transactions',icon:'\u270E'},
+  {key:'ye_unadj',group:'Year-End Castle',title:'Unadjusted TB',icon:'1'},
+  {key:'ye_adj',group:'Year-End Castle',title:'Adjusting Entries',icon:'2'},
+  {key:'ye_adjtb',group:'Year-End Castle',title:'Adjusted TB',icon:'3'},
+  {key:'ye_fs',group:'Year-End Castle',title:'Financial Statements',icon:'4'},
+  {key:'ye_close',group:'Year-End Castle',title:'Closing Entries',icon:'5'},
+  {key:'ye_postclose',group:'Year-End Castle',title:'Post-Closing TB',icon:'6'},
+  {key:'submit',group:'Submission',title:'Print & Submit',icon:'\u2605'}
+];
+const STAGE_IDX={}; STAGES.forEach(function(s,i){ STAGE_IDX[s.key]=i; });
+
+/* ===== dates ===== */
+const YEAR=2025;
+const MON_NUM={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+const MON_AB=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MON_LONG=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+const MIN_DATE='2025-01-01', MAX_DATE='2025-12-31';
+function isoOf(d){ var p=d.split(' '); return YEAR+'-'+MON_NUM[p[0]]+'-'+String(parseInt(p[1],10)).padStart(2,'0'); }
+function fullDate(d){ var p=d.split(' '); return MON_LONG[parseInt(MON_NUM[p[0]],10)]+' '+parseInt(p[1],10)+', '+YEAR; }
+function isoToFull(iso){ if(!iso) return ''; var p=iso.split('-'); return MON_LONG[parseInt(p[1],10)]+' '+parseInt(p[2],10)+', '+p[0]; }
+function isoToShort(iso){ if(!iso) return ''; var p=iso.split('-'); return MON_AB[parseInt(p[1],10)]+' '+parseInt(p[2],10); }
+
+/* ===== utils ===== */
+function $(s,el){ return (el||document).querySelector(s); }
+function $$(s,el){ return Array.prototype.slice.call((el||document).querySelectorAll(s)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function fmt(n){ return Number(n).toLocaleString('en-US'); }
+function money(n){ return '$'+fmt(n); }
+function parseAmt(v){ var n=parseFloat(String(v).replace(/[^0-9.]/g,'')); return isNaN(n)?0:Math.round(n); }
+
+/* ===== ledger / journal core ===== */
+function postLine(acct,side,amt,date,src){ var a=ACC[acct]; S.bal[acct]+=(a.normal===side?amt:-amt); S.tacct[acct].push({side:side,amt:amt,date:date||'',src:src||'txn'}); }
+function postEntry(entry,date){ entry.lines.forEach(function(L){ if(L[1]>0) postLine(L[0],'D',L[1],date); if(L[2]>0) postLine(L[0],'C',L[2],date); }); }
+function recordJournal(date,kind,label,lines){ S.journal.push({date:date,kind:kind,label:label||'',lines:lines.map(function(l){return l.slice();})}); }
+function analyzeLines(entry){ var o=[]; entry.lines.forEach(function(L){ if(L[1]>0) o.push({id:L[0],side:'D',dir:(ACC[L[0]].normal==='D'?'up':'down')}); if(L[2]>0) o.push({id:L[0],side:'C',dir:(ACC[L[0]].normal==='C'?'up':'down')}); }); return o; }
+function parseSigned(v){ var s=String(v==null?'':v).trim(); var neg=/^\s*[-\u2212]/.test(s)||/^\(.*\)$/.test(s); var n=parseFloat(s.replace(/[^0-9.]/g,'')); if(isNaN(n)) return 0; n=Math.round(n); return neg?-n:n; }
+function deriveSide(acctId,signed){ if(!signed) return null; var a=ACC[acctId]; var inc=signed>0; return a.normal==='D'?(inc?'D':'C'):(inc?'C':'D'); }
+function expectAnalyze(e){ return e.lines.map(function(L){ var side=L[1]>0?'D':'C', mag=L[1]>0?L[1]:L[2]; return L[0]+':'+side+':'+mag; }); }
+function analyzeBlocks(i){ var st; try{ st=JSON.parse(S.inp['dealer_'+i]||'{}'); }catch(_){ st={}; } var bl=[]; DEALER_COLS.forEach(function(c){ (st[c.k]||[]).forEach(function(r){ if(!r.a) return; var amt=parseSigned(r.amt); if(amt===0) return; bl.push({a:r.a, side:deriveSide(r.a,amt), mag:Math.abs(amt), amt:amt}); }); }); return bl; }
+function analyzeBalance(st){ var dt=0,ct=0; Object.keys(st).forEach(function(col){ (st[col]||[]).forEach(function(r){ if(!r.a) return; var amt=parseSigned(r.amt); if(!amt) return; var side=deriveSide(r.a,amt); if(side==='D') dt+=Math.abs(amt); else ct+=Math.abs(amt); }); }); return {dt:dt,ct:ct}; }
+function accMap(lines){ var m={}; lines.forEach(function(L){ if(!m[L[0]]) m[L[0]]={d:0,c:0}; m[L[0]].d+=L[1]; m[L[0]].c+=L[2]; }); return m; }
+function entryMatches(a,b){ var ma=accMap(a),mb=accMap(b),ka=Object.keys(ma),kb=Object.keys(mb); if(ka.length!==kb.length) return false; return kb.every(function(k){ return ma[k]&&ma[k].d===mb[k].d&&ma[k].c===mb[k].c; }); }
+function accountOptions(sel,disabledIds){ disabledIds=disabledIds||{}; var h='<option value="">\u2014 account \u2014</option>'; TB_GROUPS.forEach(function(g){ var it=ACCOUNTS.filter(function(a){return a.group===g;}); if(!it.length) return; h+='<optgroup label="'+g+'">'; it.forEach(function(a){ h+='<option value="'+a.id+'"'+(a.id===sel?' selected':'')+(disabledIds[a.id]&&a.id!==sel?' disabled':'')+'>'+a.name+(disabledIds[a.id]&&a.id!==sel?' \u2713':'')+'</option>'; }); h+='</optgroup>'; }); return h; }
+
+function computeFS(bal){
+  bal=bal||S.bal;
+  var rev=bal['rev'];
+  var expIds=ACCOUNTS.filter(function(a){return a.group==='Expenses';}).map(function(a){return a.id;});
+  var expTotal=expIds.reduce(function(s,id){return s+bal[id];},0);
+  var ni=rev-expTotal, div=bal['div'], begRE=bal['re'], endRE=begRE+ni-div;
+  var assetIds=ACCOUNTS.filter(function(a){return a.group==='Assets';}).map(function(a){return a.id;});
+  var grossAssets=assetIds.reduce(function(s,id){return s+bal[id];},0);
+  var accdep=bal['accdep'], totalAssets=grossAssets-accdep;
+  var liabIds=ACCOUNTS.filter(function(a){return a.group==='Liabilities';}).map(function(a){return a.id;});
+  var totalLiab=liabIds.reduce(function(s,id){return s+bal[id];},0);
+  var cs=bal['cs'], totalEquity=cs+endRE;
+  return {rev:rev,expIds:expIds,expTotal:expTotal,ni:ni,div:div,begRE:begRE,endRE:endRE,grossAssets:grossAssets,accdep:accdep,totalAssets:totalAssets,totalLiab:totalLiab,cs:cs,totalEquity:totalEquity};
+}
+function trialRows(){
+  var rows=[];
+  ACCOUNTS.forEach(function(a){
+    var v=S.bal[a.id]; if(v===0) return;
+    var nd=(a.normal==='D'), debit=0, credit=0;
+    if(v>0){ if(nd) debit=v; else credit=v; } else { if(nd) credit=-v; else debit=-v; }
+    rows.push({id:a.id,name:a.name,debit:debit,credit:credit});
+  });
+  return rows;
+}
+function trialTableHtml(showTot,rowsArg){
+  var rows=rowsArg||trialRows(), td=0, tc=0; rows.forEach(function(r){ td+=r.debit; tc+=r.credit; });
+  var body=''; if(!rows.length) body='<tr><td colspan="3" class="muted">No balances yet.</td></tr>';
+  rows.forEach(function(r){ body+='<tr><td>'+r.name+'</td><td class="r">'+(r.debit?fmt(r.debit):'')+'</td><td class="r">'+(r.credit?fmt(r.credit):'')+'</td></tr>'; });
+  return '<table class="je2"><thead><tr><th>Account</th><th class="r">Debit</th><th class="r">Credit</th></tr></thead><tbody>'+body+'</tbody>'+(showTot&&rows.length?'<tfoot><tr style="font-weight:800;border-top:2px solid var(--ink)"><td>Total</td><td class="r">'+fmt(td)+'</td><td class="r">'+fmt(tc)+'</td></tr></tfoot>':'')+'</table>';
+}
+function isPermAcct(id){ if(id==='div'||id==='incsum') return false; var g=ACC[id].group; return g==='Assets'||g==='Contra-Asset'||g==='Liabilities'||g==='Equity'; }
+function tAccountHtml(id,opts){
+  opts=opts||{}; var a=ACC[id]; var es=opts.entries||S.tacct[id]||[];
+  var dr=es.filter(function(e){return e.side==='D';}), cr=es.filter(function(e){return e.side==='C';});
+  var bb = opts.bb ? '<div class="ent bb"><span class="entd">BB</span><span class="enta">0</span></div>' : '';
+  var ebVal = (opts.bal!==undefined?opts.bal:S.bal[id]), ebSide = (ebVal>=0?a.normal:(a.normal==='D'?'C':'D'));
+  var eb = opts.eb ? '<div class="ent eb"><span class="entd">EB</span><span class="enta">'+fmt(Math.abs(ebVal))+'</span></div>' : '';
+  function rh(list,side){
+    var top=(side===a.normal)?bb:'';
+    var bot=(opts.eb && side===ebSide)?eb:'';
+    var mid=list.length?list.map(function(e){ return '<div class="ent'+(e.src==='adj'?' adjent':(e.src==='close'?' closeent':''))+'"><span class="entd">'+(e.date?isoToShort(e.date):'')+'</span><span class="enta">'+fmt(e.amt)+'</span></div>'; }).join(''):'';
+    if(!top&&!mid&&!bot) return opts.drop?'':'<div class="ent" style="color:#aab">&mdash;</div>';
+    return top+mid+bot;
+  }
+  var cd=opts.drop?'<div class="tcell dr drop" data-acct="'+id+'" data-side="D">':'<div class="tcell dr">';
+  var cc=opts.drop?'<div class="tcell drop" data-acct="'+id+'" data-side="C">':'<div class="tcell">';
+  return '<div class="tacct"><div class="tnm">'+a.name+'</div><div class="tbd">'+cd+'<div class="cap">Debit</div>'+rh(dr,'D')+'</div>'+cc+'<div class="cap">Credit</div>'+rh(cr,'C')+'</div></div></div>';
+}
+function ledgerBodyHtml(){
+  var used=ACCOUNTS.filter(function(a){return (S.tacct[a.id]||[]).length;});
+  var h=used.length?'<div class="taccts">'+used.map(function(a){return tAccountHtml(a.id,{});}).join('')+'</div>':'<p class="muted">No postings yet. Record and post some entries first.</p>';
+  h+='<h3 class="sh" style="margin:18px 0 8px">Current balances</h3>'+trialTableHtml(true);
+  return h;
+}
+function journalBodyHtml(kinds){
+  var list=kinds?S.journal.filter(function(j){return kinds.indexOf(j.kind)>=0;}):S.journal;
+  if(!list.length) return '<p class="muted">No entries recorded yet.</p>';
+  var rows='';
+  list.forEach(function(j){
+    j.lines.forEach(function(L,i){ rows+='<tr><td>'+(i===0?isoToFull(j.date):'')+'</td><td'+(L[1]>0?'':' style="padding-left:24px;color:#555"')+'>'+ACC[L[0]].name+'</td><td class="r">'+(L[1]>0?fmt(L[1]):'')+'</td><td class="r">'+(L[2]>0?fmt(L[2]):'')+'</td></tr>'; });
+    if(j.label) rows+='<tr><td></td><td colspan="3" style="font-style:italic;color:#8893ad;font-size:12px;padding-bottom:8px">'+j.label+'</td></tr>';
+  });
+  return '<table class="je2"><thead><tr><th style="width:130px">Date</th><th>Account</th><th class="r">Debit</th><th class="r">Credit</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function openLedger(){ $('#ledgerBody').innerHTML=ledgerBodyHtml(); $('#ledgerModal').classList.add('show'); }
+function openJournal(){ $('#journalBody').innerHTML=journalBodyHtml(null); $('#journalModal').classList.add('show'); }
+
+/* ===== state ===== */
+let S;
+function freshState(){
+  var bal={}, tacct={};
+  ACCOUNTS.forEach(function(a){ bal[a.id]=0; tacct[a.id]=[]; });
+  return {
+    v:5, user:null,
+    stage:'map', unlocked:STAGE_IDX['fc_eq'], reached:{map:true},
+    bal:bal, tacct:tacct, journal:[],
+    done:{}, inp:{},
+    sortIndex:0, rulesIndex:0,
+    txnIndex:0, txnStep:{}, estep:{}, post:{},
+    adjIndex:0, adjStep:{}, adjPost:{},
+    closeIndex:0, closeStep:{}, closePost:{},
+    fsTab:'is',
+    earned:0, snap:{}, savedAt:0, startedAt:0, finishedAt:0
+  };
+}
+
+/* ===== scoring (out of 100) + progress ===== */
+var POSSIBLE=(function(){ var ev=EVENTS.reduce(function(s,e){return s+(e.isTxn?3:1);},0); return 15+ev+8+8+8+ADJ.length+CLOSE.length+4+3+6; })();
+var TOTAL_TASKS=EVENTS.length+5+ADJ.length+CLOSE.length+6;
+function scoreAdd(key,pts){ if(S.done['_s_'+key]) return; S.done['_s_'+key]=true; S.earned+=pts; updateHud(); }
+function scorePenalty(p){ S.earned=Math.max(0,S.earned-p); updateHud(); }
+function scoreShown(){ return Math.max(0,Math.min(100,Math.round(S.earned/POSSIBLE*100))); }
+function realTaskCount(){ return Object.keys(S.done).filter(function(k){return k.charAt(0)!=='_';}).length; }
+function progressPct(){ return Math.min(100,Math.round(realTaskCount()/TOTAL_TASKS*100)); }
+function markDone(key){ S.done[key]=true; }
+
+function updateHud(){
+  var sv=$('#scoreVal'); if(sv) sv.textContent=scoreShown()+'/100';
+  var p=progressPct(), pb=$('#progBar'); if(pb) pb.style.width=p+'%'; var pn=$('#progNum'); if(pn) pn.textContent=p+'%';
+  var w=$('#whoChip'); if(w){ if(S.user){ w.style.display=''; w.innerHTML='<b>'+esc(S.user.first)+' '+esc(S.user.last)+'</b> &middot; '+esc(S.user.unid); } else { w.style.display='none'; } }
+  updateTimer();
+}
+function fmtDur(ms){ if(!ms||ms<0) ms=0; var s=Math.floor(ms/1000); var h=Math.floor(s/3600); s-=h*3600; var m=Math.floor(s/60); s-=m*60; return (h>0?(h+':'+String(m).padStart(2,'0')):String(m))+':'+String(s).padStart(2,'0'); }
+function fmtClock(ts){ if(!ts) return '\u2014'; var d=new Date(ts); return MON_AB[d.getMonth()+1]+' '+d.getDate()+', '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function fmtClockFull(ts){ if(!ts) return '\u2014'; var d=new Date(ts); return MON_LONG[d.getMonth()+1]+' '+d.getDate()+', '+d.getFullYear()+' at '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function updateTimer(){ var el=$('#sessTimer'); if(!el) return; if(S.user&&S.startedAt){ el.style.display=''; var end=S.finishedAt||Date.now(); el.innerHTML='Start '+fmtClock(S.startedAt)+' \u00b7 \u23F1 <b>'+fmtDur(end-S.startedAt)+'</b>'; el.title='Started '+fmtClockFull(S.startedAt)+(S.finishedAt?(' \u00b7 Finished '+fmtClockFull(S.finishedAt)):''); } else { el.style.display='none'; } }
+
+/* ===== save / load (#17) ===== */
+var SAVE_KEY='pawsome_quest_v5';
+function saveGame(silent){ try{ S.savedAt=Date.now(); localStorage.setItem(SAVE_KEY,JSON.stringify(S)); if(!silent) toast('Progress saved \u2713'); }catch(e){ if(!silent) toast('This browser blocked saving'); } }
+var _saveT=null;
+function scheduleSave(){ clearTimeout(_saveT); _saveT=setTimeout(function(){ saveGame(true); },700); }
+function loadGame(){ try{ var raw=localStorage.getItem(SAVE_KEY); if(!raw) return null; var o=JSON.parse(raw); if(o&&o.v===5) return o; }catch(e){} return null; }
+function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
+function savedAgo(){ if(!S.savedAt) return 'not saved yet'; var s=Math.round((Date.now()-S.savedAt)/1000); if(s<5) return 'just now'; if(s<60) return s+' seconds ago'; var m=Math.round(s/60); if(m<60) return m+' minute'+(m>1?'s':'')+' ago'; return new Date(S.savedAt).toLocaleString(); }
+
+/* ===== input persistence (#additional) ===== */
+function bindInput(el,key,oninput){
+  if(S.inp[key]!==undefined && S.inp[key]!==null) el.value=S.inp[key];
+  el.addEventListener('input',function(){ S.inp[key]=el.value; if(oninput) oninput(); scheduleSave(); });
+}
+function bindParen(el,key,oninput){
+  function fmtv(d){ return d?'('+Number(d).toLocaleString('en-US')+')':''; }
+  function show(){ var d=String(S.inp[key]==null?'':S.inp[key]).replace(/\D/g,''); el.value=fmtv(d); }
+  show();
+  el.addEventListener('input',function(){ var d=el.value.replace(/\D/g,''); S.inp[key]=d; el.value=fmtv(d); try{ var c=el.value.length-1; el.setSelectionRange(c,c); }catch(e){} if(oninput) oninput(); scheduleSave(); });
+}
+function bindSelect(el,key,onchange){ if(S.inp[key]!==undefined) el.value=S.inp[key]; el.addEventListener('change',function(){ S.inp[key]=el.value; if(onchange) onchange(); scheduleSave(); }); }
+function inpVal(key){ return parseAmt(S.inp[key]); }
+
+function toast(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },1900); }
+
+/* ===== reusable pointer drag ===== */
+function startDrag(e,srcEl,dropSel,onDrop){
+  if(e.button&&e.button!==0) return;
+  e.preventDefault();
+  var rect=srcEl.getBoundingClientRect(), ox=e.clientX-rect.left, oy=e.clientY-rect.top;
+  var ghost=srcEl.cloneNode(true); ghost.classList.add('dragghost'); ghost.classList.remove('placed');
+  ghost.style.position='fixed'; ghost.style.margin='0'; ghost.style.left=rect.left+'px'; ghost.style.top=rect.top+'px'; ghost.style.width=rect.width+'px';
+  document.body.appendChild(ghost); srcEl.classList.add('dragsrc');
+  var cur=null;
+  function mv(ev){ var x=ev.clientX,y=ev.clientY; ghost.style.left=(x-ox)+'px'; ghost.style.top=(y-oy)+'px'; ghost.style.display='none'; var el=document.elementFromPoint(x,y); ghost.style.display=''; var z=el?el.closest(dropSel):null; if(z!==cur){ if(cur) cur.classList.remove('drop-over'); cur=z; if(cur) cur.classList.add('drop-over'); } }
+  function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); ghost.remove(); srcEl.classList.remove('dragsrc'); if(cur) cur.classList.remove('drop-over'); onDrop(cur); }
+  document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+}
+
+/* ===== navigation + render router ===== */
+var _prevStage=null;
+function unlock(key){ var i=STAGE_IDX[key]; if(i>S.unlocked) S.unlocked=i; }
+function goStage(key){ unlock(key); S.stage=key; S.reached[key]=true; saveGame(true); render(); }
+function stageDone(key){
+  switch(key){
+    case 'map': return false;
+    case 'fc_eq': return !!S.done['fc_eq'];
+    case 'fc_sort': return !!S.done['fc_sort'];
+    case 'fc_rules': return !!S.done['fc_rules'];
+    case 'fc_order': return !!S.done['fc_order'];
+    case 'fc_forms': return !!S.done['fc_forms'];
+    case 'record': return EVENTS.every(function(e,i){return S.done['ev_'+i];});
+    case 'ye_unadj': return !!S.done['unadj'];
+    case 'ye_adj': return ADJ.every(function(a,i){return S.done['adj_'+i];});
+    case 'ye_adjtb': return !!S.done['adjtb'];
+    case 'ye_fs': return S.done['is']&&S.done['re']&&S.done['bs'];
+    case 'ye_close': return CLOSE.every(function(c,i){return S.done['close_'+i];});
+    case 'ye_postclose': return !!S.done['postclose'];
+    case 'submit': return false;
+  }
+  return false;
+}
+function renderSidebar(){
+  var cur=STAGE_IDX[S.stage], last=null, html='<div class="mtitle">Your Quest</div>';
+  STAGES.forEach(function(st,i){
+    if(st.group!==last){ if(last!==null) html+='</div>'; html+='<div class="ggrp"><div class="glabel">'+st.group+'</div>'; last=st.group; }
+    var cls='node', done=stageDone(st.key);
+    if(i===cur) cls+=' current'; else if(done) cls+=' done'; else if(i>S.unlocked) cls+=' locked';
+    if(i<=S.unlocked) cls+=' clickable';
+    var mark=(done&&i!==cur)?'\u2713':st.icon;
+    html+='<div class="'+cls+'" data-stage="'+st.key+'"><span class="ic">'+mark+'</span><span class="nl">'+st.title+'</span></div>';
+  });
+  html+='</div>'; $('#sidemap').innerHTML=html;
+}
+function render(){
+  var sy=window.scrollY;
+  renderSidebar(); updateHud(); dispatch();
+  var same=(_prevStage===S.stage); _prevStage=S.stage;
+  requestAnimationFrame(function(){ window.scrollTo(0, same?sy:0); });
+}
+function dispatch(){
+  var f={ map:renderMap, fc_eq:renderEq, fc_sort:renderSort, fc_rules:renderRules, fc_order:renderOrder, fc_forms:renderForms,
+    record:renderRecord, ye_unadj:renderUnadj, ye_adj:renderAdj, ye_adjtb:renderAdjtb, ye_fs:renderFS, ye_close:renderClose, ye_postclose:renderPostclose, submit:renderSubmit }[S.stage];
+  (f||renderMap)();
+}
+function setMain(h){ $('#main').innerHTML=h; }
+
+/* ===== identity (#21) ===== */
+function showIdentity(){ $('#overlay').classList.add('show'); var u=$('#idUnid'); if(u){ u.value=''; setTimeout(function(){ u.focus(); },60); } }
+function wireIdentity(){
+  $('#idStart').onclick=function(){
+    var unid=$('#idUnid').value.trim(), first=$('#idFirst').value.trim(), last=$('#idLast').value.trim(), fb=$('#idfb');
+    if(!unid||!first||!last){ fb.className='fb bad show'; fb.textContent='Please fill in all three fields to continue.'; return; }
+    S.user={unid:unid,first:first,last:last}; if(!S.startedAt) S.startedAt=Date.now();
+    $('#overlay').classList.remove('show'); saveGame(true); updateHud(); render();
+    if(!S.inp['tourSeen']){ S.inp['tourSeen']='1'; saveGame(true); setTimeout(function(){ if(S.stage==='map' && !$('#tourSpot')) startTour(); }, 450); }
+  };
+}
+
+/* ===== shared review helpers ===== */
+function frontierKey(){ return STAGES[S.unlocked]?STAGES[S.unlocked].key:'map'; }
+function rebuildBooks(){
+  ACCOUNTS.forEach(function(a){ S.bal[a.id]=0; S.tacct[a.id]=[]; }); S.journal=[];
+  function postAll(lines,di,src){ lines.forEach(function(L){ var side=L[1]>0?'D':'C', amt=L[1]>0?L[1]:L[2]; postLine(L[0],side,amt,di,src); }); }
+  EVENTS.forEach(function(e,k){ if(e.isTxn && S.done['ev_'+k]){ var di=isoOf(e.date); recordJournal(di,'txn','',e.lines); postAll(e.lines,di,'txn'); } });
+  ADJ.forEach(function(a,k){ if(S.done['adj_'+k]){ var di=isoOf('Dec 31'); recordJournal(di,'adj','('+a.title+')',a.lines); postAll(a.lines,di,'adj'); } });
+  CLOSE.forEach(function(c,k){ if(S.done['close_'+k]){ var di=isoOf('Dec 31'); recordJournal(di,'close','('+c.title+')',c.lines); postAll(c.lines,di,'close'); } });
+}
+function redoLesson(key){
+  S.done[key]=false;
+  if(key==='fc_sort'){ delete S.inp['sortplace']; delete S.inp['sortorder']; }
+  else if(key==='fc_rules') S.rulesIndex=0;
+  else if(key==='fc_order'){ for(var k=0;k<10;k++) delete S.inp['oslot_'+k]; }
+  else if(key==='fc_forms'){ ['A','B','C'].forEach(function(x){ delete S.inp['form'+x+'_done']; delete S.inp['fp'+x]; }); S.inp['formStep']='A'; delete S.inp['formReached']; }
+  else if(key==='fc_eq'){ for(var j=0;j<3;j++) delete S.inp['eq'+j]; }
+  saveGame(true); render();
+}
+function redoEvent(i){ S.done['ev_'+i]=false; S.estep[i]={}; S.txnStep[i]=0; S.post[i]=[]; delete S.inp['dealer_'+i]; delete S.inp['tj_'+i+'_je']; delete S.inp['jdrag_'+i]; delete S.inp['postsel_'+i]; rebuildBooks(); S.txnIndex=i; saveGame(true); render(); }
+function redoStage(key){
+  if(key==='ye_unadj'){ S.done['unadj']=false; delete S.snap.unadj; }
+  else if(key==='ye_adjtb'){ S.done['adjtb']=false; delete S.snap.adjtb; delete S.snap.adjRows; delete S.snap.bal; delete S.snap.fs; }
+  else if(key==='ye_fs'){ S.done['is']=false; S.done['re']=false; S.done['bs']=false; S.fsTab='is'; }
+  else if(key==='ye_postclose'){ S.done['postclose']=false; delete S.snap.postclose; }
+  saveGame(true); render();
+}
+function redoSeqEntry(doneP,idxKey,stepKey,postKey,jePrefix,i){ S.done[doneP+'_'+i]=false; S[stepKey][i]=0; S[postKey][i]=[]; delete S.inp[jePrefix+'_'+i+'_je']; delete S.inp[jePrefix+'sel_'+i]; rebuildBooks(); S[idxKey]=i; saveGame(true); render(); }
+function yeGate(doneFlag,prereqDone,prevKey,prevLabel){ if(doneFlag||prereqDone) return false; setMain('<div class="card"><div class="eyebrow">Year-End Castle</div><h2 class="h">Finish the earlier step first</h2><div class="note warn">This step uses the numbers you produce in <b>'+prevLabel+'</b>. Please complete that step first \u2014 then these values will be ready here.</div><div style="margin-top:14px"><button class="btn primary" id="goPrev">Go to '+prevLabel+' \u2192</button></div></div>'); var b=$('#goPrev'); if(b) b.onclick=function(){ goStage(prevKey); }; return true; }
+function yeRedoBtn(doneFlag,key){ if(!doneFlag) return; var h=$('#tbhost'); if(h){ h.insertAdjacentHTML('afterend','<div style="margin-top:10px"><button class="btn ghost sm" id="redoYe">\u21bb Redo this step</button></div>'); } var b=$('#redoYe'); if(b) b.onclick=function(){ redoStage(key); }; }
+function groupStages(g){ return STAGES.filter(function(s){return s.group===g;}); }
+function groupAllDone(g){ return groupStages(g).every(function(s){return stageDone(s.key);}); }
+function groupReached(g){ var idxs=groupStages(g).map(function(s){return STAGE_IDX[s.key];}); return Math.min.apply(null,idxs)<=S.unlocked; }
+function reviewSimple(key){
+  var recap={
+    fc_eq:['The accounting equation','<div class="eq"><span class="c3 a">Assets</span><span class="op">=</span><span class="c3 l">Liabilities</span><span class="op">+</span><span class="c3 e">Equity</span></div><p class="muted">Equity rises with common stock and revenue, and falls with expenses and dividends.</p>'],
+    fc_sort:['Account types','<p class="muted">Six main types: Asset, Liability, Equity, Revenue, Expense, Dividend. A <b>contra account</b> (e.g. Accumulated Depreciation) carries the opposite balance to the account it offsets.</p>'],
+    fc_rules:['Debit &amp; Credit rules','<div class="rules"><div class="rcol deb"><div class="rh">Debit \u2191</div><div class="rb">Assets &middot; Expenses &middot; Dividends</div></div><div class="rcol cre"><div class="rh">Credit \u2191</div><div class="rb">Liabilities &middot; Equity &middot; Revenue</div></div></div>'],
+    fc_order:['The cycle order','<p class="muted"><b>During the period:</b> identify \u2192 analyze \u2192 journalize \u2192 post. <b>End of period:</b> unadjusted TB \u2192 adjusting \u2192 adjusted TB \u2192 statements. <b>Year-end only:</b> closing \u2192 post-closing TB.</p>'],
+    fc_forms:['Journal-entry forms','<p class="muted">We write every entry on two lines, with the credit account <b>indented</b> below the debit.</p>']
+  }[key];
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">'+recap[0]+'</h2>'+recap[1]+'<div class="note good" style="margin-top:12px">You already finished this lesson \u2014 review any time.</div><div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+  $('#goCur').onclick=function(){ goStage(frontierKey()); };
+}
+
+/* ===== guided spotlight tour ===== */
+var TOUR_STEPS=[
+  {sel:'#ledgerBtn', title:'\u{1F4D2} Ledger', body:'Opens your T-accounts and current balances. Use it any time to check an account.'},
+  {sel:'#journalBtn', title:'\u{1F4D3} Journal', body:'Lists every journal entry you have recorded, in date order.'},
+  {sel:'#saveBtn', title:'\u{1F4BE} Save', body:'Your work saves on its own, but this button stores it right now.'},
+  {sel:'#sessTimer', title:'\u23F1 Timer', body:'Top-left, next to your name \u2014 shows when you started and how long you have worked.'},
+  {sel:'#resetBtn', title:'\u21BB Reset', body:'Erases all progress and starts the quest over. It always asks first.'}
+];
+function startTour(){
+  if($('#tourSpot')) return;
+  var i=0;
+  var spot=document.createElement('div'); spot.id='tourSpot'; spot.className='tourspot'; document.body.appendChild(spot);
+  var call=document.createElement('div'); call.className='tourcall'; document.body.appendChild(call);
+  function block(e){ if(spot.contains(e.target)||call.contains(e.target)) return; e.stopImmediatePropagation(); e.preventDefault(); call.classList.add('shake'); setTimeout(function(){ call.classList.remove('shake'); },420); }
+  function onKey(e){ if(e.key==='Escape') end(); }
+  document.addEventListener('click',block,true); document.addEventListener('keydown',onKey,true);
+  function end(){ document.removeEventListener('click',block,true); document.removeEventListener('keydown',onKey,true); if(spot.parentNode) spot.remove(); if(call.parentNode) call.remove(); S.inp['tourDone']='1'; S.inp['tourSeen']='1'; saveGame(true); if(S.stage==='map') render(); }
+  function show(){
+    if(i>=TOUR_STEPS.length){ spot.style.display='none'; call.className='tourcall done'; call.style.cssText='top:50%;left:50%;transform:translate(-50%,-50%)'; call.innerHTML='<div class="tctitle">\u2713 You are all set!</div><div class="tcbody">You found all the controls. Open this guide any time from the Quest Map to replay the tour.</div><button class="btn primary sm tcdone">Got it</button>'; call.querySelector('.tcdone').onclick=end; return; }
+    var stp=TOUR_STEPS[i], t=$(stp.sel);
+    if(!t){ i++; show(); return; }
+    var r=t.getBoundingClientRect(), pad=6;
+    spot.style.display='block'; spot.style.cssText='display:block;top:'+(r.top-pad)+'px;left:'+(r.left-pad)+'px;width:'+(r.width+pad*2)+'px;height:'+(r.height+pad*2)+'px';
+    spot.className='tourspot'; spot.onclick=function(){ i++; show(); };
+    var cw=272, ch=185, top=r.bottom+14, left=r.left+r.width/2-cw/2;
+    left=Math.max(10,Math.min(left,window.innerWidth-cw-10));
+    if(top+ch>window.innerHeight-8) top=Math.max(10,r.top-ch-12);
+    call.className='tourcall'; call.style.cssText='top:'+top+'px;left:'+left+'px';
+    call.innerHTML='<div class="tcstep">Step '+(i+1)+' of '+TOUR_STEPS.length+'</div><div class="tctitle">'+stp.title+'</div><div class="tcbody">'+stp.body+'</div><div class="tchint">\u{1F446} Click the highlighted button to continue</div><button class="tcskip">Skip the tour</button>';
+    call.querySelector('.tcskip').onclick=end;
+  }
+  show();
+}
+/* ===== STAGE 0: MAP (#18) ===== */
+function renderMap(){
+  S.reached['map']=true;
+  var areas=[
+    {g:'Foundation Camp', icon:'\u26FA', jump:'fc_eq', d:'Learn the basics \u2014 the equation, account types, debit &amp; credit rules, the order of the cycle, and journal-entry forms.'},
+    {g:'Annual Event Path', icon:'\u270F\uFE0F', jump:'record', d:'Record every October transaction: identify it, analyze the accounts, journalize, and post to the ledger.'},
+    {g:'Year-End Castle', icon:'\u{1F3F0}', jump:'ye_unadj', d:'Period-end work in six steps: unadjusted TB \u2192 adjusting entries \u2192 adjusted TB \u2192 financial statements \u2192 closing \u2192 post-closing TB.'},
+    {g:'Submission', icon:'\u{1F3C6}', jump:'submit', d:'Review your finished books and print them to PDF to hand in.'}
+  ];
+  var nodes='';
+  areas.forEach(function(a,i){
+    var done=groupAllDone(a.g), reached=groupReached(a.g), current=(STAGES[STAGE_IDX[S.stage]]&&STAGES[STAGE_IDX[S.stage]].group===a.g);
+    var stat=done?'done':(current?'current':(reached?'open':'locked'));
+    var statTxt={done:'Completed',current:'You are here',open:'Available',locked:'Locked'}[stat];
+    var cls='mapnode'+(done?' done':'')+(current?' current':'')+(!reached?' locked':'');
+    nodes+='<div class="'+cls+'" data-jump="'+(reached?a.jump:'')+'"><div class="mi">'+a.icon+'</div><div style="flex:1"><div class="mt">'+a.g+'</div><div class="md">'+a.d+'</div></div><div class="mstat '+stat+'">'+statTxt+'</div></div>';
+    if(i<areas.length-1) nodes+='<div class="mapconn"></div>';
+  });
+  var nm=S.user?esc(S.user.first):'traveler';
+  setMain('<div class="card"><div class="eyebrow">Stage 0 \u00b7 Quest Map</div><h2 class="h">Welcome, '+nm+'! Here is your journey \u{1F5FA}\uFE0F</h2>'+
+    '<p class="lede">Pawsome Pet Care, Inc. just finished its first month. Take the company through the full accounting cycle. Tap any unlocked stop to jump there.</p>'+
+    '<div class="savestatus">\u{1F4BE} <span>Your progress is saved automatically in this browser. <b>Last saved:</b> '+savedAgo()+'.</span><span style="flex:1"></span><button class="btn sm" id="mapSave">Save now</button></div>'+
+    '<details class="learnbox" open style="margin-top:12px"><summary>\u{1F4D8} How to use this screen \u2014 the menu buttons</summary>'+
+      '<p style="margin:0 12px 8px;font-size:12.5px;color:var(--soft)">These controls sit in the top bar and work on every screen. Take the quick tour to find each one, or read the list any time.</p>'+
+      '<div style="padding:0 12px 8px"><button class="btn sm primary" id="startTour">\u25B6 '+(S.inp['tourDone']?'Replay the button tour':'Take the quick button tour')+'</button></div>'+
+      '<div class="learngrid">'+
+        '<div class="lc"><b>\u{1F4D2} Ledger</b> (top-right) \u2014 opens your T-accounts and current balances.</div>'+
+        '<div class="lc"><b>\u{1F4D3} Journal</b> (top-right) \u2014 lists every journal entry you have recorded, in date order.</div>'+
+        '<div class="lc"><b>\u{1F4BE} Save</b> (top-right) \u2014 your work saves on its own; this stores it right now.</div>'+
+        '<div class="lc"><b>\u23F1 Timer</b> (top-left, by your name) \u2014 shows your start time and elapsed time.</div>'+
+        '<div class="lc" style="grid-column:1/-1"><b>\u21bb Reset</b> (top-right) \u2014 erases all progress and starts over. It always asks first.</div>'+
+      '</div>'+
+    '</details>'+
+    '<div class="mapcanvas" style="margin-top:12px">'+nodes+'</div></div>');
+  $('#mapSave').onclick=function(){ saveGame(false); render(); };
+  $$('.mapnode').forEach(function(n){ var j=n.getAttribute('data-jump'); if(j){ n.onclick=function(){ goStage(j); }; } });
+  var stb=$('#startTour'); if(stb) stb.onclick=function(){ startTour(); };
+}
+
+/* ===== FOUNDATION CAMP: equation ===== */
+function renderEq(){
+  if(stageDone('fc_eq')){
+    var ex=[[50000,20000,30000],[80000,45000,35000],[30000,12000,18000]];
+    var rws=ex.map(function(p,i){ return '<div class="solve good"><span style="font-weight:800;color:var(--brand)">#'+(i+1)+'</span><span style="flex:1">Assets <b>'+fmt(p[0])+'</b> = Liabilities <b>'+fmt(p[1])+'</b> + Equity <b>'+fmt(p[2])+'</b></span></div>'; }).join('');
+    setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">The accounting equation</h2><div class="note good">\u2713 You solved all three. Here is your work for reference.</div><div class="eq" style="margin:12px 0"><span class="c3 a">Assets</span><span class="op">=</span><span class="c3 l">Liabilities</span><span class="op">+</span><span class="c3 e">Equity</span></div>'+rws+'<div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+    $('#goCur').onclick=function(){ goStage(frontierKey()); }; return;
+  }
+  var probs=[{a:50000,l:20000,solve:'e'},{a:80000,e:35000,solve:'l'},{l:12000,e:18000,solve:'a'}];
+  var names={a:'Assets',l:'Liabilities',e:'Equity'}, ph='';
+  probs.forEach(function(p,i){
+    var parts=['a','l','e'].map(function(k){ return p.solve===k ? names[k]+' = <input class="box" id="eq'+i+'" inputmode="numeric" placeholder="?">' : names[k]+' = <b>'+fmt(p[k])+'</b>'; });
+    ph+='<div class="solve" id="eqrow'+i+'"><span style="font-weight:800;color:var(--brand)">#'+(i+1)+'</span><span style="flex:1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+parts.join('<span style="color:#aab">&middot;</span>')+'</span></div>';
+  });
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 1 of 5</div><h2 class="h">The accounting equation</h2>'+
+    '<p class="lede">Everything in accounting balances around one rule.</p>'+
+    '<div class="eq"><span class="c3 a">Assets</span><span class="op">=</span><span class="c3 l">Liabilities</span><span class="op">+</span><span class="c3 e">Equity</span></div>'+
+    '<div class="defs"><div class="def a"><div class="t">Assets</div><div class="d">What the company owns or controls.</div></div><div class="def l"><div class="t">Liabilities</div><div class="d">What the company owes to others.</div></div><div class="def e"><div class="t">Equity</div><div class="d">The owners\u2019 leftover claim.</div></div></div>'+
+    '<div class="tip"><span class="ti">\u2139</span><span>Fill the missing number in each line so both sides stay equal.</span></div>'+ph+
+    '<div class="fb" id="eqfb"></div><div style="margin-top:14px"><button class="btn primary big" id="eqCheck">Check my answers</button></div></div>');
+  probs.forEach(function(p,i){ bindInput($('#eq'+i),'eq'+i); });
+  $('#eqCheck').onclick=function(){
+    var allok=true;
+    probs.forEach(function(p,i){
+      var v=inpVal('eq'+i), ans=p.solve==='e'?p.a-p.l:p.solve==='l'?p.a-p.e:p.l+p.e, row=$('#eqrow'+i), inp=$('#eq'+i), ok=(v===ans);
+      row.classList.toggle('good',ok); row.classList.toggle('bad',!ok); inp.classList.toggle('ok',ok); inp.classList.toggle('bad',!ok); if(!ok) allok=false;
+    });
+    var fb=$('#eqfb');
+    if(allok){ scoreAdd('fc_eq',3); markDone('fc_eq'); unlock('fc_sort'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the equation always balances.'; var b=$('#eqCheck'); b.textContent='Continue to Lesson 2 \u2192'; b.onclick=function(){ goStage('fc_sort'); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Some are off. Rearrange <b>Assets = Liabilities + Equity</b> to find each missing number.'; }
+  };
+}
+
+/* ===== FOUNDATION CAMP: classify ===== */
+var SORT_SEC=[{label:'Balance Sheet (B/S)',cats:['Asset','Liability','Equity']},{label:'Income Statement (I/S)',cats:['Revenue','Expense']},{label:'Retained Earnings (R/E)',cats:['Dividend']}];
+var SORT_LBL={Asset:'Asset',Liability:'Liability',Equity:'Stockholders\u2019 Equity',Revenue:'Revenue',Expense:'Expense',Dividend:'Dividend',Contra:'Contra account'};
+function sortLearnHtml(open){ return '<details class="learnbox"'+(open?' open':'')+'><summary>\u{1F4D8} Account classes \u2014 quick reference</summary><div class="learngrid">'+
+  '<div class="lc"><b>Asset</b> \u2014 an economic resource the company controls that is expected to produce future benefit (Cash, Equipment).</div>'+
+  '<div class="lc"><b>Liability</b> \u2014 a present obligation to transfer resources, arising from a past event (Accounts Payable, Notes Payable).</div>'+
+  '<div class="lc"><b>Stockholders\u2019 Equity</b> \u2014 the owners\u2019 residual claim on assets after liabilities (Assets \u2212 Liabilities): Common Stock and Retained Earnings.</div>'+
+  '<div class="lc"><b>Revenue</b> \u2014 an increase in equity from delivering goods or services in normal operations (Service Revenue).</div>'+
+  '<div class="lc"><b>Expense</b> \u2014 a decrease in equity from using up resources to earn revenue (Rent, Insurance, Depreciation).</div>'+
+  '<div class="lc"><b>Dividend</b> \u2014 a distribution of retained earnings to stockholders; it is not an expense.</div>'+
+  '<div class="lc"><b>Contra account</b> \u2014 paired with a related account, carries the opposite normal balance, and reduces that account\u2019s book value (Accumulated Depreciation offsets Equipment).</div>'+
+  '</div></details>'; }
+function renderSort(){
+  var done=stageDone('fc_sort'), place={};
+  if(done){ CLASSIFY.forEach(function(c){ place[c.id]=c.cat; }); }
+  else { try{ place=JSON.parse(S.inp['sortplace']||'{}'); }catch(_){ place={}; } }
+  function chip(id){ return '<span class="achip'+(done?' ok':' placed')+'" data-id="'+id+'">'+ACC[id].name+'</span>'; }
+  function zone(cat){ return '<div class="dzone" data-c="'+cat+'"><div class="dzt">'+SORT_LBL[cat]+'</div><div class="dzbody">'+CLASSIFY.filter(function(c){return place[c.id]===cat;}).map(function(c){return chip(c.id);}).join('')+'</div></div>'; }
+  var secHtml=SORT_SEC.map(function(sx){return '<div class="sortsec"><div class="ss">'+sx.label+'</div><div class="dzones" style="grid-template-columns:repeat('+sx.cats.length+',1fr)">'+sx.cats.map(zone).join('')+'</div></div>';}).join('');
+  var contraHtml='<div class="contrasec"><div class="cl">Stands alone</div><div class="dzones" style="grid-template-columns:1fr">'+zone('Contra')+'</div></div>';
+  if(done){
+    setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">Account Types</h2><div class="note good">\u2713 You sorted every account onto the right statement. Here it is for reference.</div>'+sortLearnHtml(false)+secHtml+contraHtml+'<div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+    $('#goCur').onclick=function(){ goStage(frontierKey()); }; return;
+  }
+  var order; try{ order=JSON.parse(S.inp['sortorder']||'null'); }catch(_){ order=null; }
+  if(!order||order.length!==CLASSIFY.length){ order=CLASSIFY.map(function(c){return c.id;}); for(var z=order.length-1;z>0;z--){ var rr=Math.floor(Math.random()*(z+1)); var tt=order[z]; order[z]=order[rr]; order[rr]=tt; } S.inp['sortorder']=JSON.stringify(order); }
+  var leftN=order.filter(function(id){return !place[id];}).length;
+  var tray=order.filter(function(id){return !place[id];}).map(function(id){return chip(id);}).join('');
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 2 of 5</div><h2 class="h">Sort every account onto its statement</h2>'+sortLearnHtml(!S.inp['sortLearned'])+
+    '<p class="lede"><b>Drag each account</b> from the tray into the box where it belongs. Move them all, then press <b>Check all</b>.</p>'+
+    '<div class="tray"><div class="trayh">Accounts \u00b7 '+leftN+' left</div><div class="traybody" data-c="TRAY">'+(tray||'<span class="muted" style="font-size:12.5px">All placed \u2014 press Check all.</span>')+'</div></div>'+
+    secHtml+contraHtml+
+    '<div class="fb" id="sfb"></div><div style="margin-top:12px"><button class="btn primary big" id="sortCheck">Check all</button></div></div>');
+  function move(id,cat){ if(cat==='TRAY') delete place[id]; else place[id]=cat; S.inp['sortplace']=JSON.stringify(place); S.inp['sortLearned']='1'; saveGame(true); render(); }
+  $$('.achip[data-id]').forEach(function(c){ c.addEventListener('pointerdown',function(ev){ startDrag(ev,c,'.dzone, .traybody',function(target){ if(!target) return; move(c.getAttribute('data-id'), target.getAttribute('data-c')); }); }); });
+  $('#sortCheck').onclick=function(){
+    if(CLASSIFY.some(function(c){return !place[c.id];})){ var fb=$('#sfb'); fb.className='fb bad show'; fb.innerHTML='Some accounts are still in the tray. Place every account, then check.'; return; }
+    var allOk=true;
+    $$('.dzone .achip[data-id]').forEach(function(c){ var id=c.getAttribute('data-id'); var box=c.closest('.dzone').getAttribute('data-c'); var ok=(CLASSIFY.filter(function(x){return x.id===id;})[0].cat===box); c.classList.remove('placed'); c.classList.toggle('ok',ok); c.classList.toggle('bad',!ok); if(!ok) allOk=false; });
+    var fb=$('#sfb');
+    if(allOk){ scoreAdd('fc_sort',3); markDone('fc_sort'); unlock('fc_rules'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 All correct! Every account is on the right statement.'; var b=$('#sortCheck'); b.textContent='Continue \u2192'; b.onclick=function(){ goStage('fc_rules'); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Pink chips are in the wrong box \u2014 drag them out and try again.'; }
+  };
+}
+
+/* ===== FOUNDATION CAMP: rules ===== */
+function renderRules(){
+  if(stageDone('fc_rules')){
+    var ans=[['Cash','Debit'],['Service Revenue','Credit'],['Accounts Payable','Credit'],['Rent Expense','Debit'],['Common Stock','Credit'],['Dividends','Debit']];
+    var rws=ans.map(function(a){ return '<div class="solve good"><span style="flex:1">'+a[0]+'</span><span style="font-weight:800;color:'+(a[1]==='Debit'?'var(--debit)':'var(--credit)')+'">\u2191 with a '+a[1]+'</span></div>'; }).join('');
+    setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">Debit &amp; Credit rules</h2><div class="note good">\u2713 You answered every one. Here is the DEALER rule and your answers.</div><div class="tip" style="margin-top:10px"><span class="ti">\u2139</span><span><b>D</b>ividends, <b>E</b>xpenses, <b>A</b>ssets go up with a <b style="color:var(--debit)">debit</b>; <b>L</b>iabilities, <b>E</b>quity, <b>R</b>evenue go up with a <b style="color:var(--credit)">credit</b>.</span></div><div style="margin-top:10px">'+rws+'</div><div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+    $('#goCur').onclick=function(){ goStage(frontierKey()); }; return;
+  }
+  var Q=[{acct:'Cash',cat:'an asset',ans:'D'},{acct:'Service Revenue',cat:'revenue',ans:'C'},{acct:'Accounts Payable',cat:'a liability',ans:'C'},{acct:'Rent Expense',cat:'an expense',ans:'D'},{acct:'Common Stock',cat:'equity',ans:'C'},{acct:'Dividends',cat:'a dividend account',ans:'D'}];
+  var total=Q.length, idx=S.rulesIndex||0;
+  if(idx>=total){ scoreAdd('fc_rules',3); markDone('fc_rules'); unlock('fc_order'); saveGame(true); toast('Debit & credit rules complete \u2713'); goStage('fc_order'); return; }
+  var q=Q[idx];
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 3 of 5</div><h2 class="h">Debit &amp; Credit rules</h2>'+
+    '<p class="lede">The word <b>DEALER</b> tells you which side makes each account go <b>up</b>.</p>'+
+    '<div class="tip"><span class="ti">\u2139</span><span><b>D</b>ividends, <b>E</b>xpenses, <b>A</b>ssets go up on the <b style="color:var(--debit)">debit</b> side. <b>L</b>iabilities, <b>E</b>quity, <b>R</b>evenue go up on the <b style="color:var(--credit)">credit</b> side. (D-E-A = L-E-R)</span></div>'+
+    '<div class="rules"><div class="rcol deb"><div class="rh">DEBIT increases \u2191 &nbsp;(D E A)</div><div class="rb"><span class="pill">Dividends</span><span class="pill">Expenses</span><span class="pill">Assets</span></div></div>'+
+    '<div class="rcol cre"><div class="rh">CREDIT increases \u2191 &nbsp;(L E R)</div><div class="rb"><span class="pill">Liabilities</span><span class="pill">Equity</span><span class="pill">Revenue</span></div></div></div>'+
+    '<div class="scnt"><span class="n">Check '+(idx+1)+' / '+total+'</span><div class="pbar" style="flex:1"><i style="width:'+(idx/total*100)+'%"></i></div></div>'+
+    '<div class="qcard"><div class="qq"><b>'+q.acct+'</b> ('+q.cat+') goes <b>up</b>. Which side?</div><div class="dc"><button class="dcbtn" data-v="D">Debit</button><button class="dcbtn" data-v="C">Credit</button></div></div>'+
+    '<div class="fb" id="rfb"></div></div>');
+  $$('.dcbtn').forEach(function(b){ b.onclick=function(){
+    var v=b.getAttribute('data-v'), fb=$('#rfb');
+    if(v===q.ans){ b.classList.add('good'); $$('.dcbtn').forEach(function(x){x.disabled=true;}); fb.className='fb good show'; fb.innerHTML='\u2713 Yes! '+q.acct+' increases with a '+(q.ans==='D'?'debit':'credit')+'.'; setTimeout(function(){ S.rulesIndex=idx+1; saveGame(true); render(); },620); }
+    else { b.classList.add('bad'); fb.className='fb bad show'; fb.innerHTML='Look at the two boxes above \u2014 which list has this type?'; setTimeout(function(){ b.classList.remove('bad'); },460); }
+  }; });
+}
+
+/* ===== FOUNDATION CAMP: cycle order (#20) ===== */
+var _orderSel=null;
+function renderOrder(){
+  var done=stageDone('fc_order'); _orderSel=null;
+  var sections=[{t:'During the period',hint:'every transaction',a:0,b:3},{t:'End of the period',hint:'monthly / quarterly / yearly',a:4,b:7},{t:'Year-end only',hint:'once a year',a:8,b:9}];
+  function slotFill(idx){ if(done) return CYCLE_STEPS[idx]; var v=S.inp['oslot_'+idx]; return v?CYCLE_STEPS.filter(function(s){return s.id===v;})[0]:null; }
+  var slotsHtml=sections.map(function(sec){ var inner=''; for(var idx=sec.a;idx<=sec.b;idx++){ var step=slotFill(idx); inner+='<div class="oslot'+(step?' filled':'')+'" data-slot="'+idx+'"><span class="onum">'+(idx+1)+'</span>'+(step?'<span class="ofill">\u2713 '+step.label+'</span>':'<span class="muted" style="font-size:12.5px">drop step '+(idx+1)+' here</span>')+'</div>'; } return '<div class="osec">'+sec.t+' <span style="color:var(--soft2);font-weight:600;text-transform:none;letter-spacing:0">\u00b7 '+sec.hint+'</span></div>'+inner; }).join('');
+  if(done){
+    setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">The accounting cycle, in order</h2><div class="note good">\u2713 You put all ten steps in the right order. Here it is for reference.</div><div style="margin-top:10px">'+slotsHtml+'</div><div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+    $('#goCur').onclick=function(){ goStage(frontierKey()); }; return;
+  }
+  var filled={}; CYCLE_STEPS.forEach(function(s,idx){ var v=S.inp['oslot_'+idx]; if(v) filled[v]=true; });
+  var pool=CYCLE_STEPS.filter(function(s){ return !filled[s.id]; }).slice().sort(function(a,b){ return a.id<b.id?-1:1; });
+  var poolHtml=pool.length? pool.map(function(s){ return '<span class="ochip" data-drag="1" data-id="'+s.id+'">'+s.label+'</span>'; }).join('') : '<span class="muted" style="font-size:12.5px">All placed!</span>';
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 4 of 5</div><h2 class="h">Put the accounting cycle in order</h2>'+
+    '<p class="lede"><b>Drag each step</b> into the numbered slot where it belongs (or tap a step, then a slot). The <b>order</b> matters \u2014 step 1 to step 10.</p>'+
+    '<div class="obucket" data-pool="1" style="border-style:solid;background:#fff"><div class="bt" style="color:var(--soft2)">Steps to place \u2014 drag from here</div>'+poolHtml+'</div>'+
+    '<div style="margin-top:8px">'+slotsHtml+'</div>'+
+    '<div class="fb" id="ofb"></div></div>');
+  function tryPlace(idx,stepId,slotEl){
+    var fb=$('#ofb'); if(S.inp['oslot_'+idx]) return;
+    if(CYCLE_STEPS[idx].id===stepId){ S.inp['oslot_'+idx]=stepId; _orderSel=null;
+      if(CYCLE_STEPS.every(function(s,k){ return S.inp['oslot_'+k]; })){ scoreAdd('fc_order',3); markDone('fc_order'); unlock('fc_forms'); saveGame(true); toast('Cycle order complete \u2713'); goStage('fc_forms'); }
+      else { saveGame(true); render(); }
+    } else { if(slotEl){ slotEl.classList.add('over'); setTimeout(function(){ slotEl.classList.remove('over'); },520); } fb.className='fb bad show'; fb.innerHTML='Not step '+(idx+1)+' \u2014 that one happens at a different point in the cycle.'; }
+  }
+  $$('.ochip[data-drag]').forEach(function(c){
+    c.addEventListener('pointerdown',function(ev){ startDrag(ev,c,'.oslot',function(target){ if(!target) return; tryPlace(+target.getAttribute('data-slot'), c.getAttribute('data-id'), target); }); });
+    c.onclick=function(){ $$('.ochip').forEach(function(x){x.style.outline='';}); _orderSel=c.getAttribute('data-id'); c.style.outline='2px solid var(--brand)'; };
+  });
+  $$('.oslot').forEach(function(slot){ var idx=+slot.getAttribute('data-slot'); slot.onclick=function(){ if(!_orderSel) return; tryPlace(idx,_orderSel,slot); }; });
+}
+function orderComplete(){
+  var gh=CYCLE_GROUPS.map(function(g){ var steps=CYCLE_STEPS.filter(function(s){return s.grp===g.key;}); return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:var(--brand)">'+g.title+'</div><div style="font-size:13.5px">'+steps.map(function(s,i){return (i+1)+'. '+s.label;}).join(' &nbsp;\u2192&nbsp; ')+'</div></div>'; }).join('');
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 4 of 5</div><h2 class="h">The accounting cycle, in order \u{1F504}</h2><div class="note good">\u2713 All steps placed correctly!</div><div style="margin-top:12px">'+gh+'</div><div style="margin-top:14px"><button class="btn primary big" id="oc">Continue to Lesson 5 \u2192</button></div></div>');
+  $('#oc').onclick=function(){ goStage('fc_forms'); };
+}
+
+/* ===== FOUNDATION CAMP: two entry forms (#2) ===== */
+var FORM_PRAC={
+  A:{expect:[['cash',15000,0],['cs',0,15000]], prompt:'Issue common stock for 15,000 cash.', hint:'Debit Cash, credit Common Stock.'},
+  B:{expect:[['cash',15000,0],['cs',0,15000]], prompt:'Issue common stock for 15,000 cash.', hint:'Put Cash (debit) on top, then Common Stock (credit), indented.'},
+  C:{expect:[['cash',15000,0],['cs',0,15000]], prompt:'Issue common stock for 15,000 cash.', hint:'Debit Cash, credit Common Stock.'}
+};
+function formsRefHtml(open){ return '<details class="learnbox"'+(open?' open':'')+'><summary>\u{1F4D8} The three forms (same entry: Cash 15,000 / Common Stock 15,000)</summary><div style="padding:0 12px 12px">'+
+  '<div style="font-weight:800;font-size:13px;margin-bottom:5px;color:var(--ink)">Form A \u00b7 one line</div><div style="font-family:var(--mono);font-size:13px;margin-bottom:13px;padding-left:20px">dr) Cash 15,000 &nbsp;&nbsp;&nbsp; cr) Common Stock 15,000</div>'+
+  '<div style="font-weight:800;font-size:13px;margin-bottom:5px;color:var(--ink)">Form B \u00b7 two lines (credit account indented)</div><div style="font-family:var(--mono);font-size:13px;line-height:1.9;margin-bottom:13px;padding-left:20px">dr) Cash&nbsp;&nbsp;&nbsp;&nbsp;15,000<br>&nbsp;&nbsp;&nbsp;&nbsp;cr) Common Stock&nbsp;&nbsp;&nbsp;15,000</div>'+
+  '<div style="font-weight:800;font-size:13px;margin-bottom:5px;color:var(--ink)">Form C \u00b7 table</div>'+
+  '<table class="je" style="margin-top:5px"><thead><tr><th>Account</th><th>Debit</th><th>Credit</th></tr></thead><tbody><tr><td>Cash</td><td style="font-family:var(--mono)">15,000</td><td></td></tr><tr><td>Common Stock</td><td></td><td style="font-family:var(--mono)">15,000</td></tr></tbody></table>'+
+  '</div></details>'; }
+function formAllDone(){ return S.inp['formA_done']&&S.inp['formB_done']&&S.inp['formC_done']; }
+function formPass(k){ S.inp['form'+k+'_done']='1'; if(formAllDone()){ scoreAdd('fc_forms',3); markDone('fc_forms'); unlock('record'); } saveGame(true); }
+function addFormNext(k,cb,fb){
+  if($('#formNextGo')) return;
+  var nextK = k==='A'?'B':(k==='B'?'C':null); if(!nextK) return;
+  var nb=document.createElement('button'); nb.className='btn primary'; nb.id='formNextGo'; nb.style.marginLeft='8px'; nb.textContent='Next — Form '+nextK+' →';
+  if(cb) cb.insertAdjacentElement('afterend',nb); else if(fb) fb.insertAdjacentElement('afterend',nb);
+  $('#formNextGo').onclick=function(){ S.inp['formStep']=nextK; S.inp['formReached']=nextK; saveGame(true); render(); };
+}
+function formSuccess(k,fb,msg){
+  fb.className='fb good show'; fb.innerHTML=msg; formPass(k);
+  var cb=$('#'+(k==='A'?'fa':k==='B'?'fb':'fc')+'Check'); if(cb) cb.disabled=true;
+  var tab=$('#main .fstab[data-fstep="'+k+'"]'); if(tab){ tab.classList.add('done'); tab.classList.remove('cur'); tab.innerHTML='✓ Form '+k; }
+  if(formAllDone()){
+    if(!$('#formGo')){ var host=$('#formHost'); if(host){ host.insertAdjacentHTML('beforeend','<div class="evfoot" style="border-top:none"><div style="flex:1"></div><button class="btn primary big" id="formGo">Start the Annual Event Path →</button></div>'); $('#formGo').onclick=function(){ goStage('record'); }; } }
+  } else { addFormNext(k,cb,fb); }
+}
+function renderForms(){
+  if(stageDone('fc_forms')){
+    setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Completed \u2713</div><h2 class="h">Three ways to write a journal entry</h2><div class="note good">\u2713 You practiced all three forms. From here on, the game uses <b>Form B</b>.</div>'+formsRefHtml(true)+'<div class="evfoot"><button class="btn primary" id="goCur">Go to my current step \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoBtn">\u21bb Redo this lesson</button></div></div>');
+    $('#goCur').onclick=function(){ goStage(frontierKey()); }; return;
+  }
+  var fa=!!S.inp['formA_done'], fbd=!!S.inp['formB_done'], fcd=!!S.inp['formC_done'];
+  var FORD={A:0,B:1,C:2};
+  var reached=S.inp['formReached'];
+  if(!reached){ var _hi=fcd?'C':(fbd?'B':'A'); var _fs=S.inp['formStep']||'A'; reached=(FORD[_fs]>FORD[_hi])?_fs:_hi; }
+  S.inp['formReached']=reached;
+  function unlockedForm(k){ return FORD[k]<=FORD[reached]; }
+  var step=S.inp['formStep'];
+  if(!step || !unlockedForm(step)) step = reached;
+  var tabs=['A','B','C'].map(function(k){ var done=!!S.inp['form'+k+'_done'], unl=unlockedForm(k); return '<button class="fstab'+(step===k?' cur':'')+(done?' done':'')+(unl?'':' locked')+'" data-fstep="'+k+'"'+(unl?'':' disabled')+'>'+(done?'\u2713 ':(unl?'':'\u{1F512} '))+'Form '+k+'</button>'; }).join('');
+  setMain('<div class="card"><div class="eyebrow">Foundation Camp \u00b7 Lesson 5 of 5</div><h2 class="h">Three ways to write a journal entry</h2>'+formsRefHtml(true)+
+    '<p class="lede">Practice each form below. Finish all three to move on. Never write a currency symbol inside an entry.</p>'+
+    '<div class="fstabs">'+tabs+'</div><div id="formHost"></div><div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);text-align:right"><button class="btn ghost sm" id="redoForms">\u21bb Redo this lesson</button></div></div>');
+  $$('#main .fstab[data-fstep]').forEach(function(t){ t.onclick=function(){ var k=t.getAttribute('data-fstep'); if(!unlockedForm(k)) return; S.inp['formStep']=k; saveGame(true); render(); }; });
+  var rdf=$('#redoForms'); if(rdf) rdf.onclick=function(){ redoLesson('fc_forms'); };
+  paintForm(step);
+}
+function paintForm(step){
+  var host=$('#formHost'); if(!host) return; var prac=FORM_PRAC[step];
+  var intro='<div class="tlabel" style="margin-top:2px">Transaction to record</div><div class="tdesc" style="margin:6px 0 12px">'+esc(prac.prompt)+'</div><p class="muted" style="font-size:12.5px;margin-bottom:6px">Now write it in <b>Form '+step+'</b>:</p>';
+  host.innerHTML=intro+(step==='A'?formAHtml():step==='B'?formBHtml():formCHtml());
+  if(formAllDone()) host.insertAdjacentHTML('beforeend','<div style="margin-top:14px"><button class="btn primary big" id="formGo">Start the Annual Event Path \u2192</button></div>');
+  if(step==='A') wireFormA(); else if(step==='B') wireFormB(); else wireFormC();
+  if($('#formGo')) $('#formGo').onclick=function(){ goStage('record'); };
+  if(!formAllDone() && S.inp['form'+step+'_done']){
+    var _cb=$('#'+(step==='A'?'fa':step==='B'?'fb':'fc')+'Check'); if(_cb) _cb.disabled=true;
+    var _fb=$('#'+(step==='A'?'fa':step==='B'?'fb':'fc')+'Fb'); if(_fb){ _fb.className='fb good show'; _fb.innerHTML='✓ Form '+step+' is complete.'; }
+    addFormNext(step,_cb,_fb);
+  }
+}
+function formState(key,def){ var st; try{ st=JSON.parse(S.inp[key]||'null'); }catch(_){ st=null; } return st||def; }
+/* Form A: debit-left / credit-right, add-line on each side */
+function formAHtml(){
+  var st=formState('fpA',{dr:[{a:'',m:''}],cr:[{a:'',m:''}]});
+  function sideHtml(side,label,cls){ var rows=st[side].map(function(r,ri){ var rm=ri>0?'<button class="rm" data-side="'+side+'" data-ri="'+ri+'">\u00d7</button>':'<span class="rmsp"></span>'; return '<div class="farow"><select class="facc" data-side="'+side+'" data-ri="'+ri+'">'+accountOptions(r.a)+'</select><input class="famt" inputmode="numeric" placeholder="amount" data-side="'+side+'" data-ri="'+ri+'" value="'+esc(r.m||'')+'">'+rm+'</div>'; }).join(''); return '<div class="fcol"><div class="fcolh '+cls+'">'+label+'</div>'+rows+'<button class="btn sm ghost fadd" data-side="'+side+'" style="width:100%">+ add '+(side==='dr'?'debit':'credit')+' line</button></div>'; }
+  return '<div class="twoform">'+sideHtml('dr','Debit (left side)','deb')+sideHtml('cr','Credit (right side)','cre')+'</div><div class="fb" id="faFb"></div><div style="margin-top:10px"><button class="btn primary" id="faCheck">Check Form A</button></div>';
+}
+function wireFormA(){
+  var host=$('#formHost');
+  function read(){ var st={dr:[],cr:[]}; ['dr','cr'].forEach(function(side){ $$('select.facc[data-side="'+side+'"]',host).forEach(function(sel){ var ri=sel.getAttribute('data-ri'); var amt=host.querySelector('.famt[data-side="'+side+'"][data-ri="'+ri+'"]'); st[side].push({a:sel.value,m:amt?amt.value:''}); }); }); return st; }
+  function persist(){ S.inp['fpA']=JSON.stringify(read()); scheduleSave(); }
+  $$('.facc',host).forEach(function(s){ s.onchange=persist; });
+  $$('.famt',host).forEach(function(i){ i.addEventListener('input',persist); });
+  $$('.fadd',host).forEach(function(b){ b.onclick=function(){ var st=read(); st[b.getAttribute('data-side')].push({a:'',m:''}); S.inp['fpA']=JSON.stringify(st); paintForm('A'); }; });
+  $$('.rm',host).forEach(function(b){ b.onclick=function(){ var st=read(); st[b.getAttribute('data-side')].splice(+b.getAttribute('data-ri'),1); S.inp['fpA']=JSON.stringify(st); paintForm('A'); }; });
+  $('#faCheck').onclick=function(){ var st=read(), fb=$('#faFb'); var lines=[]; st.dr.forEach(function(r){ if(r.a&&parseAmt(r.m)>0) lines.push([r.a,parseAmt(r.m),0]); }); st.cr.forEach(function(r){ if(r.a&&parseAmt(r.m)>0) lines.push([r.a,0,parseAmt(r.m)]); });
+    if(lines.length<2){ fb.className='fb bad show'; fb.innerHTML='Enter at least one debit and one credit with an amount.'; return; }
+    var td=0,tc=0; lines.forEach(function(l){ td+=l[1]; tc+=l[2]; }); if(td!==tc){ fb.className='fb bad show'; fb.innerHTML='Debits must equal credits.'; return; }
+    if(entryMatches(lines,FORM_PRAC.A.expect)){ formSuccess('A',fb,'\u2713 Form A is correct!'); }
+    else { fb.className='fb bad show'; fb.innerHTML='Not matching. '+FORM_PRAC.A.hint; }
+  };
+}
+/* Form B: Dr/Cr selector -> indent + active amount only */
+function formBHtml(){
+  var st=formState('fpB',{rows:[{dc:'D',a:'',d:'',c:''},{dc:'C',a:'',d:'',c:''}]});
+  var rows=st.rows.map(function(r,ri){ var isD=r.dc!=='C';
+    var dcsel='<select class="fbdc" data-ri="'+ri+'"><option value="D"'+(isD?' selected':'')+'>Dr.</option><option value="C"'+(!isD?' selected':'')+'>Cr.</option></select>';
+    var acc='<select class="fbacc" data-ri="'+ri+'" style="'+(isD?'':'margin-left:20px;width:calc(100% - 20px)')+'">'+accountOptions(r.a)+'</select>';
+    var dInp='<input class="fbd" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.d||'')+'"'+(isD?'':' disabled')+'>';
+    var cInp='<input class="fbc" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.c||'')+'"'+(isD?' disabled':'')+'>';
+    return '<tr><td style="width:62px">'+dcsel+'</td><td>'+acc+'</td><td>'+dInp+'</td><td>'+cInp+'</td><td style="width:26px">'+(ri>1?'<button class="rm" data-ri="'+ri+'">\u00d7</button>':'')+'</td></tr>'; }).join('');
+  return '<table class="je fbtable"><thead><tr><th>Dr/Cr</th><th>Account</th><th class="r">Debit</th><th class="r">Credit</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:8px"><button class="btn sm ghost" id="fbAdd">+ add line</button></div><div class="fb" id="fbFb"></div><div style="margin-top:10px"><button class="btn primary" id="fbCheck">Check Form B</button></div>';
+}
+function wireFormB(){
+  var host=$('#formHost');
+  function read(){ var rows=[]; $$('.fbtable tbody tr',host).forEach(function(tr){ rows.push({dc:tr.querySelector('.fbdc').value, a:tr.querySelector('.fbacc').value, d:tr.querySelector('.fbd').value, c:tr.querySelector('.fbc').value}); }); return {rows:rows}; }
+  function persist(){ S.inp['fpB']=JSON.stringify(read()); scheduleSave(); }
+  $$('.fbdc',host).forEach(function(s){ s.onchange=function(){ var st=read(); var ri=+s.getAttribute('data-ri'); if(st.rows[ri].dc==='C') st.rows[ri].d=''; else st.rows[ri].c=''; S.inp['fpB']=JSON.stringify(st); paintForm('B'); }; });
+  $$('.fbacc,.fbd,.fbc',host).forEach(function(el){ el.addEventListener('input',persist); el.onchange=persist; });
+  $('#fbAdd').onclick=function(){ var st=read(); st.rows.push({dc:'C',a:'',d:'',c:''}); S.inp['fpB']=JSON.stringify(st); paintForm('B'); };
+  $$('.rm',host).forEach(function(b){ b.onclick=function(){ var st=read(); st.rows.splice(+b.getAttribute('data-ri'),1); S.inp['fpB']=JSON.stringify(st); paintForm('B'); }; });
+  $('#fbCheck').onclick=function(){ var st=read(), fb=$('#fbFb'); var lines=[]; st.rows.forEach(function(r){ if(!r.a) return; if(r.dc==='C'){ if(parseAmt(r.c)>0) lines.push([r.a,0,parseAmt(r.c)]); } else { if(parseAmt(r.d)>0) lines.push([r.a,parseAmt(r.d),0]); } });
+    if(lines.length<2){ fb.className='fb bad show'; fb.innerHTML='For each line choose Dr./Cr., an account, and the amount on the active side.'; return; }
+    var td=0,tc=0; lines.forEach(function(l){ td+=l[1]; tc+=l[2]; }); if(td!==tc){ fb.className='fb bad show'; fb.innerHTML='Debits must equal credits.'; return; }
+    if(entryMatches(lines,FORM_PRAC.B.expect)){ formSuccess('B',fb,'\u2713 Form B is correct \u2014 debit on top, credit indented.'); }
+    else { fb.className='fb bad show'; fb.innerHTML='Not matching. '+FORM_PRAC.B.hint; }
+  };
+}
+/* Form C: account / debit / credit table */
+function formCHtml(){
+  var st=formState('fpC',{rows:[{a:'',d:'',c:''},{a:'',d:'',c:''}]});
+  var rows=st.rows.map(function(r,ri){ return '<tr><td><select class="fcacc" data-ri="'+ri+'">'+accountOptions(r.a)+'</select></td><td><input class="fcd" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.d||'')+'"></td><td><input class="fcc" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.c||'')+'"></td><td style="width:26px">'+(ri>1?'<button class="rm" data-ri="'+ri+'">\u00d7</button>':'')+'</td></tr>'; }).join('');
+  return '<table class="je fbtable"><thead><tr><th>Account</th><th class="r">Debit</th><th class="r">Credit</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div style="margin-top:8px"><button class="btn sm ghost" id="fcAdd">+ add line</button></div><div class="fb" id="fcFb"></div><div style="margin-top:10px"><button class="btn primary" id="fcCheck">Check Form C</button></div>';
+}
+function wireFormC(){
+  var host=$('#formHost');
+  function read(){ var rows=[]; $$('.fbtable tbody tr',host).forEach(function(tr){ rows.push({a:tr.querySelector('.fcacc').value, d:tr.querySelector('.fcd').value, c:tr.querySelector('.fcc').value}); }); return {rows:rows}; }
+  function persist(){ S.inp['fpC']=JSON.stringify(read()); scheduleSave(); }
+  $$('.fcacc,.fcd,.fcc',host).forEach(function(el){ el.addEventListener('input',persist); el.onchange=persist; });
+  $('#fcAdd').onclick=function(){ var st=read(); st.rows.push({a:'',d:'',c:''}); S.inp['fpC']=JSON.stringify(st); paintForm('C'); };
+  $$('.rm',host).forEach(function(b){ b.onclick=function(){ var st=read(); st.rows.splice(+b.getAttribute('data-ri'),1); S.inp['fpC']=JSON.stringify(st); paintForm('C'); }; });
+  $('#fcCheck').onclick=function(){ var st=read(), fb=$('#fcFb'); var lines=st.rows.map(function(r){ return [r.a,parseAmt(r.d),parseAmt(r.c)]; }).filter(function(l){ return l[0]&&(l[1]>0||l[2]>0); });
+    if(lines.length<2){ fb.className='fb bad show'; fb.innerHTML='Enter the accounts and amounts.'; return; }
+    var td=0,tc=0; lines.forEach(function(l){ td+=l[1]; tc+=l[2]; }); if(td!==tc){ fb.className='fb bad show'; fb.innerHTML='Debits must equal credits.'; return; }
+    if(entryMatches(lines,FORM_PRAC.C.expect)){ formSuccess('C',fb,'\u2713 Form C is correct!'); }
+    else { fb.className='fb bad show'; fb.innerHTML='Not matching. '+FORM_PRAC.C.hint; }
+  };
+}
+
+/* ===================== ANNUAL EVENT PATH (#19,#9,#4,#5,#1,#6,#7) ===================== */
+function firstIncompleteEvent(){ for(var i=0;i<EVENTS.length;i++){ if(!S.done['ev_'+i]) return i; } return EVENTS.length; }
+function eventReached(i){ return !!S.done['ev_'+i] || i===firstIncompleteEvent(); }
+function recordTrailHtml(){
+  return '<div class="trail">'+EVENTS.map(function(e,i){
+    var done=!!S.done['ev_'+i], reached=eventReached(i), cur=(i===S.txnIndex);
+    var cls='tnode'+(done?' done':'')+(cur?' cur':'')+(reached?' reached':'');
+    return '<div class="'+cls+'" data-i="'+i+'"><span class="paw">\u{1F43E}</span><div class="dot">'+(done?'\u2713':(i+1))+'</div><div class="dd">'+isoToShort(isoOf(e.date))+'</div></div>';
+  }).join('')+'</div>';
+}
+function estepDone(i,s){ return !!(S.estep[i]&&S.estep[i][s]); }
+function setEstep(i,s){ if(!S.estep[i]) S.estep[i]={}; S.estep[i][s]=true; }
+function eventFullyDone(i,e){ return e.isTxn ? (estepDone(i,0)&&estepDone(i,1)&&estepDone(i,2)&&estepDone(i,3)) : estepDone(i,0); }
+function renderRecord(){
+  if(!eventReached(S.txnIndex)) S.txnIndex=Math.min(firstIncompleteEvent(),EVENTS.length-1);
+  var allDone=EVENTS.every(function(e,i){return S.done['ev_'+i];});
+  setMain('<div class="card"><div class="eyebrow">Annual Event Path \u00b7 Record Transactions</div>'+
+    '<h2 class="h" style="margin-bottom:6px">The year\u2019s transactions</h2>'+
+    '<p class="lede" style="margin-bottom:6px">Tap any reached event to revisit it \u2014 your inputs stay saved.</p>'+
+    '<div id="trailHost">'+recordTrailHtml()+'</div>'+
+    (allDone?'<div class="note good" style="margin-top:6px">\u2713 All '+EVENTS.length+' events recorded! Use the button under the last event to continue.</div>':'')+
+    '</div><div class="card" id="txnCard"></div>');
+  wireTrail();
+  if(allDone){ var b=$('#toYE'); if(b) b.onclick=function(){ unlock('ye_unadj'); goStage('ye_unadj'); }; }
+  renderTxnCard();
+}
+function wireTrail(){ $$('#trailHost .tnode').forEach(function(n){ var idx=+n.getAttribute('data-i'); if(eventReached(idx)){ n.onclick=function(){ selectTxn(idx); }; } }); }
+function selectTxn(idx){ S.txnIndex=idx; saveGame(true); $$('#trailHost .tnode').forEach(function(n){ n.classList.toggle('cur', +n.getAttribute('data-i')===idx); }); renderTxnCard(); }
+function stepUnlocked(i,sx){ if(sx===0) return true; for(var k=0;k<sx;k++){ if(!estepDone(i,k)) return false; } return true; }
+function stepTabsHtml(i){ var names=['Identify','Analyze','Journalize','Post'], cur=S.txnStep[i]||0; return '<div class="fstabs" style="margin-top:10px">'+names.map(function(nm,sx){ var dn=estepDone(i,sx), unl=stepUnlocked(i,sx); return '<button class="fstab'+(cur===sx?' cur':'')+(dn?' done':'')+(unl?'':' locked')+'" data-step="'+sx+'"'+(unl?'':' disabled')+'>'+(dn?'\u2713 ':(unl?'':'\u{1F512} '))+(sx+1)+'. '+nm+'</button>'; }).join('')+'</div>'; }
+function renderTxnCard(){
+  var i=S.txnIndex, e=EVENTS[i], host=$('#txnCard'); if(!host) return;
+  var doneEv=S.done['ev_'+i];
+  var cur=S.txnStep[i]||0;
+  var showTabs=(e.isTxn&&!doneEv);
+  var dbox='';
+  if(showTabs && (cur===1||cur===2)){
+    dbox='<div class="dealerbox">'+(cur===1
+      ? '<b>DEALER</b> \u2014 <b>D</b>ividends, <b>E</b>xpenses, <b>A</b>ssets go up with a <b>debit</b>; <b>L</b>iabilities, <b>E</b>quity, <b>R</b>evenue go up with a <b>credit</b>. Put each affected account under its type and type the amount, then choose <b>+</b> for an increase or <b>\u2212</b> for a decrease.'
+      : '<b>DEALER</b> \u2014 <b>D</b>ividends, <b>E</b>xpenses, <b>A</b>ssets go up with a <b>debit</b>; <b>L</b>iabilities, <b>E</b>quity, <b>R</b>evenue go up with a <b>credit</b>.')+'</div>';
+  }
+  var tabsRow = showTabs ? '<div class="tabsrow"><div class="tabsleft">'+stepTabsHtml(i)+'</div>'+dbox+'</div>' : '';
+  host.innerHTML='<div class="tlabel">Event '+String(i+1).padStart(2,'0')+' of '+EVENTS.length+(e.isTxn?'':' \u00b7 maybe not a transaction')+'</div>'+tabsRow+'<div class="tdate">'+fullDate(e.date)+'</div><div class="tdesc">'+esc(e.desc)+'</div><div id="stepHost"></div>';
+  if(showTabs){ $$('#txnCard .fstab[data-step]').forEach(function(t){ t.onclick=function(){ goStep(i,+t.getAttribute('data-step')); }; }); }
+  renderStepBody(i,e);
+}
+function goStep(i,sx){ if(!stepUnlocked(i,sx)) return; S.txnStep[i]=sx; saveGame(true); renderTxnCard(); }
+function afterStep(i,e){
+  if(eventFullyDone(i,e)){ finishEvent(i,e); return; }
+  var sx; for(sx=0;sx<4;sx++){ if(!estepDone(i,sx)) break; }
+  S.txnStep[i]=sx; saveGame(true); renderTxnCard();
+}
+function stepNextLabel(i,e){ if(!e.isTxn) return 'Continue \u2192'; var names=['Identify','Analyze','Journalize','Post']; for(var k=0;k<4;k++){ if(!estepDone(i,k)) return 'Next step \u2014 '+names[k]+' \u2192'; } return 'Continue \u2192'; }
+function finishEvent(i,e){ markDone('ev_'+i); scoreAdd('ev_'+i, e.isTxn?3:1); saveGame(true); render(); }
+function stepDoneSummary(t,d){ return '<div class="step done"><div class="shead"><span class="sn">\u2713</span>'+t+'</div><div class="ssum">'+d+'</div></div>'; }
+
+function renderStepBody(i,e){
+  var host=$('#stepHost'); if(!host) return;
+  if(S.done['ev_'+i]){
+    var allEvDone=EVENTS.every(function(x,k){return S.done['ev_'+k];});
+    var nextIdx=firstIncompleteEvent();
+    var leftBtn = allEvDone ? '<button class="btn primary big" id="evCont">Continue to the Year-End Castle \u2192</button>'
+      : (nextIdx<EVENTS.length ? '<button class="btn primary big" id="evNext">Next transaction \u2192</button>' : '');
+    host.innerHTML=eventReviewHtml(i,e)+'<div class="evfoot">'+leftBtn+'<div style="flex:1"></div><button class="btn ghost" id="redoEv">\u21bb Redo this transaction</button></div>';
+    var rb=$('#redoEv'); if(rb) rb.onclick=function(){ redoEvent(i); };
+    var nb=$('#evNext'); if(nb) nb.onclick=function(){ selectTxn(nextIdx); };
+    var cb=$('#evCont'); if(cb) cb.onclick=function(){ unlock('ye_unadj'); goStage('ye_unadj'); };
+    return;
+  }
+  if(!e.isTxn){ host.innerHTML=identifyHtml(i,e); wireIdentify(i,e); return; }
+  var st=S.txnStep[i]||0;
+  if(st===0){ host.innerHTML=identifyHtml(i,e); wireIdentify(i,e); }
+  else if(st===1){ host.innerHTML=analyzeStepHtml(i,e); wireAnalyzeStep(i,e); }
+  else if(st===2){ host.innerHTML=journalizeStepHtml(i,e); wireJournalizeStep(i,e); }
+  else { host.innerHTML=postStepHtml(i,e); wirePosting(i,e); }
+}
+
+/* --- identify --- */
+function identifyHtml(i,e){
+  if(estepDone(i,0)) return '<div style="margin-top:12px"><div class="note good">\u2713 You marked this as '+(e.isTxn?'a transaction to record':'<b>not</b> a transaction')+'.</div></div>';
+  return '<div style="margin-top:12px"><p class="muted" style="font-size:13.5px;margin-bottom:9px">Is this an event Pawsome should <b>record</b> with a journal entry?</p>'+
+    '<div class="yn"><button class="ynb yes"><div class="yt">Yes \u2014 record it</div><div class="yd">A real dollar amount changes in the accounts.</div></button>'+
+    '<button class="ynb no"><div class="yt">No \u2014 don\u2019t record</div><div class="yd">Just a plan, a quote, or a hire \u2014 no measurable change yet.</div></button></div>'+
+    '<div class="fb" id="idfb2"></div></div>';
+}
+function wireIdentify(i,e){
+  if(estepDone(i,0)) return;
+  $$('.ynb').forEach(function(b){ b.onclick=function(){
+    var saidYes=b.classList.contains('yes'), correct=e.isTxn?saidYes:!saidYes, fb=$('#idfb2');
+    if(correct){ b.classList.add('pg'); $$('.ynb').forEach(function(x){x.disabled=true;}); setEstep(i,0); fb.className='fb good show'; fb.innerHTML= e.isTxn?'\u2713 Yes \u2014 this changes the accounts. Move on to analyze.':'\u2713 Correct \u2014 '+esc(e.why||'nothing to record yet.'); var bar=document.createElement('div'); bar.className='evfoot'; bar.style.borderTop='none'; bar.style.paddingTop='10px'; bar.innerHTML='<div style="flex:1"></div><button class="btn primary" id="idNextGo">'+stepNextLabel(i,e)+'</button>'; fb.parentNode.appendChild(bar); $('#idNextGo').onclick=function(){ afterStep(i,e); }; }
+    else { b.classList.add('pb'); fb.className='fb bad show'; fb.innerHTML= e.isTxn?'Look again \u2014 this one <b>does</b> change the accounts.':'Look again \u2014 has any dollar amount actually changed yet?'; setTimeout(function(){ b.classList.remove('pb'); b.disabled=false; },800); }
+  }; });
+}
+
+/* --- analyze: DEALER (#4) --- */
+var DEALER_COLS=[{k:'div',label:'Dividends'},{k:'exp',label:'Expenses'},{k:'ast',label:'Assets'},{k:'lia',label:'Liabilities'},{k:'eqt',label:'Equity'},{k:'rev',label:'Revenue'}];
+function dealerColOf(id){ var a=ACC[id]; if(id==='div') return 'div'; if(a.group==='Expenses') return 'exp'; if(a.group==='Assets') return 'ast'; if(a.group==='Liabilities') return 'lia'; if(a.group==='Revenue') return 'rev'; return 'eqt'; }
+function analyzeStepHtml(i,e){
+  return '<div class="analyzewrap" style="margin-top:12px">'+
+    '<div id="analyzeHost">'+analyzeHtml(i,e)+'</div>'+
+    '<div id="anbal"></div>'+
+    '<div class="fb" id="anfb"></div><div style="margin-top:12px"><button class="btn primary" id="anCheck">Check the analysis</button></div></div>';
+}
+function analyzeHtml(i,e){
+  var store; try{ store=JSON.parse(S.inp['dealer_'+i]||'{}'); }catch(_){ store={}; }
+  DEALER_COLS.forEach(function(c){ if(!store[c.k]||!store[c.k].length) store[c.k]=[{a:'',amt:''}]; });
+  function colHtml(ck){
+    var c=DEALER_COLS.filter(function(x){return x.k===ck;})[0];
+    var opts=ACCOUNTS.filter(function(a){ return dealerColOf(a.id)===ck; });
+    var rows=store[ck].map(function(r,ri){
+      var sel='<select class="danacc" data-col="'+ck+'" data-ri="'+ri+'"><option value="">\u2014 choose \u2014</option>'+opts.map(function(a){return '<option value="'+a.id+'"'+(a.id===r.a?' selected':'')+'>'+a.name+'</option>';}).join('')+'</select>';
+      var rm=ri>0?'<button class="danx" data-col="'+ck+'" data-ri="'+ri+'" title="remove">\u00d7</button>':'';
+      var amt='<div class="danamtwrap"><div class="danamtlbl">amount</div><div class="danamtrow"><span class="dancur">$</span><input class="danamt nocomma" data-col="'+ck+'" data-ri="'+ri+'" inputmode="text" placeholder="0" value="'+esc(r.amt||'')+'"></div></div>';
+      return '<div class="danblock'+(ri>0?' added':'')+'"><div class="danblktop">'+sel+rm+'</div>'+amt+'</div>';
+    }).join('');
+    return '<div class="dcol '+ck+'"><div class="dcolh">'+c.label+'</div><div class="dcell">'+rows+'<button class="btn sm ghost danadd" data-col="'+ck+'">+ Add new account</button></div></div>';
+  }
+  return '<div class="dealer">'+
+    '<div class="dlbar deb" style="grid-column:1/4">DEBIT \u2191 \u00b7 D E A</div><div></div><div class="dlbar cre" style="grid-column:5/8">CREDIT \u2191 \u00b7 L E R</div>'+
+    colHtml('div')+colHtml('exp')+colHtml('ast')+'<div class="deqcol">=</div>'+colHtml('lia')+colHtml('eqt')+colHtml('rev')+
+    '</div>';
+}
+function readDealer(){
+  var st={}; DEALER_COLS.forEach(function(c){ st[c.k]=[]; });
+  $$('#analyzeHost .danblock').forEach(function(blk){ var sel=blk.querySelector('.danacc'); var col=sel.getAttribute('data-col'); var amtEl=blk.querySelector('.danamt'); st[col].push({a:sel.value, amt:amtEl?amtEl.value:''}); });
+  return st;
+}
+function wireAnalyzeStep(i,e){
+  var host=$('#analyzeHost');
+  function updateBal(){ var bal=analyzeBalance(readDealer()); var el=$('#anbal'); if(!el) return; var eq=(bal.dt===bal.ct&&bal.dt>0); el.innerHTML='<div class="anbalbox '+(eq?'ok':((bal.dt||bal.ct)?'bad':''))+'">Debit effect <b>'+money(bal.dt)+'</b> &nbsp;=&nbsp; Credit effect <b>'+money(bal.ct)+'</b>'+(eq?' &nbsp;\u2713 equal (debits = credits)':((bal.dt||bal.ct)?' &nbsp;\u2014 not equal yet':''))+'</div>'; }
+  function persist(){ S.inp['dealer_'+i]=JSON.stringify(readDealer()); scheduleSave(); updateBal(); }
+  function fmtAmt(el){ var neg=/^\s*[-\u2212]/.test(el.value); var d=el.value.replace(/[^0-9]/g,''); var out=(neg?'-':'')+(d?Number(d).toLocaleString('en-US'):''); if(out!==el.value){ var pos=el.selectionStart, old=el.value.length; el.value=out; var np=pos+(out.length-old); try{ el.setSelectionRange(np,np); }catch(_){ } } }
+  host.addEventListener('change',function(ev){ if(ev.target.classList&&ev.target.classList.contains('danacc')) persist(); });
+  host.addEventListener('input',function(ev){ if(ev.target.classList&&ev.target.classList.contains('danamt')){ fmtAmt(ev.target); persist(); } });
+  host.addEventListener('click',function(ev){ var t=ev.target;
+    if(t.classList&&t.classList.contains('danadd')){ var st=readDealer(); st[t.getAttribute('data-col')].push({a:'',amt:''}); S.inp['dealer_'+i]=JSON.stringify(st); host.innerHTML=analyzeHtml(i,e); updateBal(); scheduleSave(); }
+    else if(t.classList&&t.classList.contains('danx')){ var st2=readDealer(); var col=t.getAttribute('data-col'); st2[col].splice(+t.getAttribute('data-ri'),1); if(!st2[col].length) st2[col]=[{a:'',amt:''}]; S.inp['dealer_'+i]=JSON.stringify(st2); host.innerHTML=analyzeHtml(i,e); updateBal(); scheduleSave(); }
+  });
+  updateBal();
+  $('#anCheck').onclick=function(){
+    var st=readDealer(), got=[], bad=false, any=false;
+    Object.keys(st).forEach(function(col){ st[col].forEach(function(r){ if(r.a||r.amt){ var amt=parseSigned(r.amt); if(!r.a||amt===0){ bad=true; } else { any=true; got.push(r.a+':'+deriveSide(r.a,amt)+':'+Math.abs(amt)); } } }); });
+    var fb=$('#anfb');
+    if(bad){ fb.className='fb bad show'; fb.innerHTML='Each account you add needs a name and a non-zero amount (use \u2212 for a decrease).'; return; }
+    if(!any){ fb.className='fb bad show'; fb.innerHTML='Pick the affected accounts and type each amount with + or \u2212.'; return; }
+    var bal=analyzeBalance(st); if(bal.dt!==bal.ct){ fb.className='fb bad show'; fb.innerHTML='Your debit effects ('+money(bal.dt)+') must equal your credit effects ('+money(bal.ct)+'). Check the signs and amounts.'; return; }
+    var exp=expectAnalyze(e);
+    if(got.slice().sort().join('|')===exp.slice().sort().join('|')){ fb.className='fb good show'; fb.innerHTML='\u2713 Correct analysis! Now move on to journalize.'; setEstep(i,1); var cbtn=$('#anCheck'); cbtn.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.id='anNextGo'; nb.style.marginLeft='8px'; nb.textContent=stepNextLabel(i,e); cbtn.insertAdjacentElement('afterend',nb); $('#anNextGo').onclick=function(){ afterStep(i,e); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Not quite. Put each affected account under its type with the right amount, and use + for an increase or \u2212 for a decrease.'; }
+  };
+}
+
+/* --- journalize (#5) --- */
+function journalizeStepHtml(i,e){ return '<div style="margin-top:12px"><p class="muted" style="font-size:13px;margin-bottom:8px">Take each block from your analysis and drag it to the <b>Debit</b> or <b>Credit</b> box. The journal entry (Form B) builds automatically below.</p><div id="jhost"></div></div>'; }
+function wireJournalizeStep(i,e){ buildJournalizeDrag($('#jhost'),i,e,function(){ if(!estepDone(i,2)) recordJournal(isoOf(e.date),'txn','',e.lines); setEstep(i,2); }); }
+function buildJournalizeDrag(host,i,e,onPass){
+  var blocks=analyzeBlocks(i);
+  var pl; try{ pl=JSON.parse(S.inp['jdrag_'+i]||'null'); }catch(_){ pl=null; }
+  if(!pl||pl.length!==blocks.length) pl=blocks.map(function(){return false;});
+  function save(){ S.inp['jdrag_'+i]=JSON.stringify(pl); scheduleSave(); }
+  function chip(b,k){ var tag=b.amt<0?'<span class="jddec">\u2193 decrease</span>':'<span class="jdinc">\u2191 increase</span>'; return '<div class="jdchip" data-k="'+k+'"><span class="jdca">'+ACC[b.a].name+'</span><span class="jdcm">$'+fmt(b.mag)+'</span>'+tag+'</div>'; }
+  function entryHtml(){
+    var drs=[],crs=[]; blocks.forEach(function(b,k){ if(pl[k]){ (b.side==='D'?drs:crs).push(b); } });
+    if(!drs.length&&!crs.length) return '<div class="muted" style="font-size:12.5px;padding:8px">The journal entry will appear here as you place each block.</div>';
+    var rows=''; drs.forEach(function(b){ rows+='<div class="jderow"><span>'+ACC[b.a].name+'</span><span class="jdeamt">'+fmt(b.mag)+'</span><span></span></div>'; });
+    crs.forEach(function(b){ rows+='<div class="jderow"><span class="jdecr">'+ACC[b.a].name+'</span><span></span><span class="jdeamt">'+fmt(b.mag)+'</span></div>'; });
+    return '<div class="jdetitle">Journal entry \u00b7 Form B</div><div class="jde"><div class="jdehead"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+rows+'</div>';
+  }
+  function paint(){
+    if(!blocks.length){ host.innerHTML='<div class="note warn">Finish the <b>Analyze</b> step first \u2014 then your blocks will appear here to drag.</div>'; return; }
+    var src=blocks.map(function(b,k){ return pl[k]?'':chip(b,k); }).join('');
+    var dr=blocks.map(function(b,k){ return (pl[k]&&b.side==='D')?chip(b,k):''; }).join('');
+    var cr=blocks.map(function(b,k){ return (pl[k]&&b.side==='C')?chip(b,k):''; }).join('');
+    var allPlaced=pl.every(Boolean);
+    host.innerHTML='<div class="jdragwrap"><div class="jdsrc"><div class="jdsrch">Drag each block to the <b>Debit</b> or <b>Credit</b> box (click a placed block to take it back)</div><div class="jdchips">'+(src||'<span class="muted" style="font-size:12px">All blocks placed \u2014 check the entry below.</span>')+'</div></div>'+
+      '<div class="jdboxes"><div class="jdbox drop" data-box="D"><div class="jdboxh deb">Debit side</div><div class="jdboxbody">'+(dr||'<span class="jdph">drop debit blocks here</span>')+'</div></div><div class="jdbox drop" data-box="C"><div class="jdboxh cre">Credit side</div><div class="jdboxbody">'+(cr||'<span class="jdph">drop credit blocks here</span>')+'</div></div></div>'+
+      '<div class="jdentrybox">'+entryHtml()+'</div><div class="fb" id="jdfb"></div>'+
+      (allPlaced?'<div style="margin-top:12px"><button class="btn primary" id="jdcheck">Check the entry</button></div>':'')+'</div>';
+    $$('.jdchips .jdchip[data-k]',host).forEach(function(c){ c.addEventListener('pointerdown',function(ev){ var k=+c.getAttribute('data-k'); startDrag(ev,c,'.jdbox.drop',function(box){ if(!box) return; var side=box.getAttribute('data-box'); var fb=$('#jdfb'); if(blocks[k].side===side){ pl[k]=true; save(); paint(); } else { if(fb){ fb.className='fb bad show'; fb.innerHTML='\u2715 '+ACC[blocks[k].a].name+' with that sign is a '+(blocks[k].side==='D'?'debit':'credit')+', not a '+(side==='D'?'debit':'credit')+'. Try the other box.'; } } }); }); });
+    $$('.jdbox .jdchip[data-k]',host).forEach(function(c){ c.style.cursor='pointer'; c.title='click to take it back'; c.onclick=function(){ var k=+c.getAttribute('data-k'); pl[k]=false; save(); paint(); }; });
+    var cb=$('#jdcheck'); if(cb) cb.onclick=function(){ var lines=[]; blocks.forEach(function(b){ lines.push(b.side==='D'?[b.a,b.mag,0]:[b.a,0,b.mag]); }); var fb=$('#jdfb'); if(entryMatches(lines,e.lines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'; onPass(); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.id='jdNextGo'; nb.style.marginLeft='8px'; nb.textContent=stepNextLabel(i,e); cb.insertAdjacentElement('afterend',nb); $('#jdNextGo').onclick=function(){ afterStep(i,e); }; } else { fb.className='fb bad show'; fb.innerHTML='The entry does not match. Re-check your Analyze step.'; } };
+  }
+  paint();
+}
+function buildJournalize(host,opts){
+  var key=opts.keyPrefix, st; try{ st=JSON.parse(S.inp[key+'_je']||'null'); }catch(_){ st=null; }
+  if(!st) st={date:(opts.prefillDate||''),rows:[{a:'',d:'',c:''},{a:'',d:'',c:''}]};
+  function rowsHtml(){ return st.rows.map(function(r,ri){ return '<tr class="jrow" data-ri="'+ri+'"><td><select class="acc">'+accountOptions(r.a)+'</select></td><td><input class="amt deb" inputmode="numeric" placeholder="0" value="'+esc(r.d||'')+'"></td><td><input class="amt cre" inputmode="numeric" placeholder="0" value="'+esc(r.c||'')+'"></td><td>'+(ri>1?'<button class="rm">\u00d7</button>':'')+'</td></tr>'; }).join(''); }
+  function readDom(){ if($('#jdate')) st.date=$('#jdate').value; st.rows=$$('#jebody tr.jrow').map(function(tr){ return {a:tr.querySelector('.acc').value,d:tr.querySelector('.deb').value,c:tr.querySelector('.cre').value}; }); }
+  function persist(){ readDom(); S.inp[key+'_je']=JSON.stringify(st); scheduleSave(); }
+  function recalc(){ var td=0,tc=0; $$('#jebody tr.jrow').forEach(function(tr){ td+=parseAmt(tr.querySelector('.deb').value); tc+=parseAmt(tr.querySelector('.cre').value); }); $('#jtd').textContent=fmt(td); $('#jtc').textContent=fmt(tc); var ok=(td>0&&td===tc); $('#jtot').className='jtot '+(ok?'ok':((td||tc)?'bad':'')); }
+  function paint(){
+    host.innerHTML='<div class="row" style="margin-bottom:10px"><label style="font-size:12px;font-weight:800;color:var(--soft)">Date</label> <input type="date" class="datepick" id="jdate" min="'+MIN_DATE+'" max="'+MAX_DATE+'" value="'+esc(st.date||'')+'"></div>'+
+      '<table class="je"><thead><tr><th>Account</th><th class="r">Debit</th><th class="r">Credit</th><th style="width:30px"></th></tr></thead><tbody id="jebody">'+rowsHtml()+'</tbody>'+
+      '<tfoot><tr class="jtot" id="jtot"><td>Total</td><td class="r" id="jtd">0</td><td class="r" id="jtc">0</td><td></td></tr></tfoot></table>'+
+      '<div style="margin-top:8px"><button class="btn sm ghost" id="jaddrow">+ Add line</button></div>'+
+      '<div class="fb" id="jfb"></div><div style="margin-top:12px"><button class="btn primary" id="jcheck">'+(opts.checkLabel||'Check the entry')+'</button></div>';
+    $('#jdate').onchange=persist;
+    $$('#jebody .acc').forEach(function(s){ s.onchange=persist; });
+    $$('#jebody .deb, #jebody .cre').forEach(function(inp){ inp.addEventListener('input',function(){ recalc(); persist(); }); });
+    $$('#jebody .rm').forEach(function(b){ b.onclick=function(){ readDom(); st.rows.splice(+b.closest('tr').getAttribute('data-ri'),1); S.inp[key+'_je']=JSON.stringify(st); paint(); }; });
+    $('#jaddrow').onclick=function(){ readDom(); st.rows.push({a:'',d:'',c:''}); S.inp[key+'_je']=JSON.stringify(st); paint(); };
+    $('#jcheck').onclick=check; recalc();
+  }
+  function check(){
+    readDom(); var fb=$('#jfb');
+    if(opts.dateIso && st.date!==opts.dateIso){ fb.className='fb bad show'; fb.innerHTML='This entry is dated <b>'+isoToFull(opts.dateIso)+'</b>. Please set that date.'; return; }
+    if(!st.date){ fb.className='fb bad show'; fb.innerHTML='Pick the date first.'; return; }
+    var lines=st.rows.map(function(r){ return [r.a,parseAmt(r.d),parseAmt(r.c)]; }).filter(function(l){ return l[0]&&(l[1]>0||l[2]>0); });
+    if(lines.length<2){ fb.className='fb bad show'; fb.innerHTML='You need at least one debit and one credit line.'; return; }
+    var td=0,tc=0; lines.forEach(function(l){ td+=l[1]; tc+=l[2]; });
+    if(td!==tc){ fb.className='fb bad show'; fb.innerHTML='Debits must equal credits. Right now '+money(td)+' \u2260 '+money(tc)+'.'; return; }
+    if(entryMatches(lines,opts.expectLines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'; opts.onPass(st.date,lines); }
+    else { fb.className='fb bad show'; fb.innerHTML='That doesn\u2019t match. Re-check each account and whether its amount is a debit or a credit.'; }
+  }
+  paint();
+}
+
+/* --- post (#1,#6,#7) --- */
+function postedAllFor(i,id,e){ var placed=S.post[i]||[]; var ok=true; e.lines.forEach(function(L,k){ if(L[0]===id && !placed[k]) ok=false; }); return ok; }
+function postStepHtml(i,e){ return '<div style="margin-top:12px"><p class="muted" style="font-size:13px;margin-bottom:8px">Open one account with the dropdown, then drag its amount into the correct side. The credit line is indented.</p>'+postingHtml(i,e)+'</div>'; }
+function postingHtml(i,e){
+  var placed=S.post[i]||[]; var involved=[]; e.lines.forEach(function(L){ if(involved.indexOf(L[0])<0) involved.push(L[0]); });
+  var sel=S.inp['postsel_'+i]; if(!sel||involved.indexOf(sel)<0) sel=involved[0];
+  var jrows=e.lines.map(function(L,k){
+    var isD=L[1]>0, acct=L[0], amt=isD?L[1]:L[2];
+    var chip= placed[k] ? '<span class="chip placed'+(isD?'':' cr')+'">'+fmt(amt)+'</span>' : '<span class="chip'+(isD?'':' cr')+'" data-k="'+k+'" data-acct="'+acct+'" data-side="'+(isD?'D':'C')+'" data-amt="'+amt+'">'+fmt(amt)+'</span>';
+    return '<div class="jr '+(isD?'dr':'cr')+'"><span class="acn">'+ACC[acct].name+'</span>'+(isD?chip+'<span></span>':'<span></span>'+chip)+'</div>';
+  }).join('');
+  var je='<div class="postlead">Journal entry to post</div><div class="jentry"><div class="jh"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+jrows+'</div>';
+  var picker='<div class="ledgerpick"><label style="font-size:12px;font-weight:800;color:var(--soft)">Open ledger account:</label><select id="postsel">'+involved.map(function(id){ return '<option value="'+id+'"'+(id===sel?' selected':'')+'>'+ACC[id].name+(postedAllFor(i,id,e)?'  \u2713 posted':'')+'</option>'; }).join('')+'</select></div>';
+  var tacc='<div id="postT">'+tAccountHtml(sel,{drop:true})+'</div>';
+  var cnt=placed.filter(Boolean).length;
+  return je+picker+tacc+'<div class="postcount">Posted '+cnt+' of '+e.lines.length+' lines.</div><div class="fb" id="pfb"></div><div style="margin-top:12px"><button class="btn primary" id="pcheck">Check posting</button></div>';
+}
+function wirePosting(i,e){
+  $('#postsel').onchange=function(){ S.inp['postsel_'+i]=this.value; saveGame(true); renderStepBody(i,e); };
+  $$('.chip[data-k]').forEach(function(chip){ chip.addEventListener('pointerdown',function(ev){ startDrag(ev,chip,'.tcell.drop',function(cell){ onPostDrop(i,e,chip,cell); }); }); });
+  $('#pcheck').onclick=function(){ var placed=S.post[i]||[], fb=$('#pfb'); if(placed.filter(Boolean).length>=e.lines.length){ setEstep(i,3); afterStep(i,e); } else { fb.className='fb bad show'; fb.innerHTML='Not all lines are posted yet. Use the <b>Open ledger account</b> dropdown to view each account, then drag its amount in.'; } };
+}
+function onPostDrop(i,e,chip,cell){
+  if(!cell) return;
+  var k=+chip.getAttribute('data-k'), acct=chip.getAttribute('data-acct'), side=chip.getAttribute('data-side'), amt=+chip.getAttribute('data-amt');
+  if(cell.getAttribute('data-acct')===acct && cell.getAttribute('data-side')===side){
+    if(!S.post[i]) S.post[i]=[]; if(!S.post[i][k]){ S.post[i][k]=true; postLine(acct,side,amt,isoOf(e.date),'txn'); }
+    saveGame(true); renderStepBody(i,e);
+  } else {
+    cell.classList.add('miss'); setTimeout(function(){ cell.classList.remove('miss'); },500);
+    var fb=$('#pfb'); if(fb){ fb.className='fb bad show'; fb.innerHTML='That belongs to a different account or side. Open <b>'+ACC[acct].name+'</b> and drag it to its '+(side==='D'?'debit (left)':'credit (right)')+' side.'; }
+  }
+}
+
+/* --- completed event review (#19) --- */
+function eventReviewHtml(i,e){
+  if(!e.isTxn) return '<div class="note good" style="margin-top:12px">\u2713 Correctly identified as <b>not</b> a recordable transaction. '+esc(e.why||'')+'</div>';
+  var je='<div class="postlead" style="margin-top:12px">Your journal entry</div><div class="jentry"><div class="jh"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+
+    e.lines.map(function(L){ var isD=L[1]>0; return '<div class="jr '+(isD?'dr':'cr')+'"><span class="acn">'+ACC[L[0]].name+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(isD?fmt(L[1]):'')+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(!isD?fmt(L[2]):'')+'</span></div>'; }).join('')+'</div>';
+  var involved=[]; e.lines.forEach(function(L){ if(involved.indexOf(L[0])<0) involved.push(L[0]); });
+  return '<div class="note good" style="margin-top:12px">\u2713 This event is done \u2014 here is what you recorded, for reference.</div>'+je+'<div class="postlead" style="margin-top:12px">Posted to the ledger</div><div class="taccts">'+involved.map(function(id){return tAccountHtml(id,{});}).join('')+'</div>';
+}
+
+/* ===================== YEAR-END CASTLE ===================== */
+function cloneBal(){ var o={}; ACCOUNTS.forEach(function(a){ o[a.id]=S.bal[a.id]; }); return o; }
+function adjEntryHtml(a){ return '<div class="jentry" style="margin-top:10px;max-width:440px"><div class="jh"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+a.lines.map(function(L){ var isD=L[1]>0; return '<div class="jr '+(isD?'dr':'cr')+'"><span class="acn">'+ACC[L[0]].name+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(isD?fmt(L[1]):'')+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(!isD?fmt(L[2]):'')+'</span></div>'; }).join('')+'</div>'; }
+
+/* --- generic drag-posting (reused by adjustments + closing) --- */
+function buildPosting(host,opts){
+  function paint(){
+    var placed=opts.getPlaced(), involved=[]; opts.lines.forEach(function(L){ if(involved.indexOf(L[0])<0) involved.push(L[0]); });
+    var sel=S.inp[opts.selKey]; if(!sel||involved.indexOf(sel)<0) sel=involved[0];
+    var jrows=opts.lines.map(function(L,k){
+      var isD=L[1]>0, acct=L[0], amt=isD?L[1]:L[2];
+      var chip=placed[k]?'<span class="chip placed'+(isD?'':' cr')+'">'+fmt(amt)+'</span>':'<span class="chip'+(isD?'':' cr')+'" data-k="'+k+'" data-acct="'+acct+'" data-side="'+(isD?'D':'C')+'" data-amt="'+amt+'">'+fmt(amt)+'</span>';
+      return '<div class="jr '+(isD?'dr':'cr')+'"><span class="acn">'+ACC[acct].name+'</span>'+(isD?chip+'<span></span>':'<span></span>'+chip)+'</div>';
+    }).join('');
+    var je='<div class="postlead">Post this entry</div><div class="jentry"><div class="jh"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+jrows+'</div>';
+    var picker='<div class="ledgerpick"><label style="font-size:12px;font-weight:800;color:var(--soft)">Open ledger account:</label><select id="bpsel">'+involved.map(function(id){ var allp=true; opts.lines.forEach(function(L,k){ if(L[0]===id&&!placed[k]) allp=false; }); return '<option value="'+id+'"'+(id===sel?' selected':'')+'>'+ACC[id].name+(allp?'  \u2713 posted':'')+'</option>'; }).join('')+'</select></div>';
+    host.innerHTML=je+picker+'<div id="bpT">'+tAccountHtml(sel,{drop:true})+'</div><div class="postcount">Posted '+placed.filter(Boolean).length+' of '+opts.lines.length+' lines.</div><div class="fb" id="bpfb"></div><div style="margin-top:12px"><button class="btn primary" id="bpcheck">Check posting</button></div>';
+    $('#bpsel').onchange=function(){ S.inp[opts.selKey]=this.value; scheduleSave(); paint(); };
+    $$('.chip[data-k]',host).forEach(function(chip){ chip.addEventListener('pointerdown',function(ev){ startDrag(ev,chip,'.tcell.drop',function(cell){ drop(chip,cell); }); }); });
+    $('#bpcheck').onclick=function(){ if(opts.getPlaced().filter(Boolean).length>=opts.lines.length){ opts.onComplete(); } else { var fb=$('#bpfb'); fb.className='fb bad show'; fb.innerHTML='Not all lines are posted. Open each account in the dropdown and drag its amount in.'; } };
+  }
+  function drop(chip,cell){
+    if(!cell) return;
+    var k=+chip.getAttribute('data-k'), acct=chip.getAttribute('data-acct'), side=chip.getAttribute('data-side'), amt=+chip.getAttribute('data-amt');
+    if(cell.getAttribute('data-acct')===acct && cell.getAttribute('data-side')===side){ var placed=opts.getPlaced(); if(!placed[k]){ placed[k]=true; opts.setPlaced(placed); postLine(acct,side,amt,opts.dateIso,opts.src); } saveGame(true); paint(); }
+    else { cell.classList.add('miss'); setTimeout(function(){ cell.classList.remove('miss'); },500); var fb=$('#bpfb'); if(fb){ fb.className='fb bad show'; fb.innerHTML='That belongs to a different account or side.'; } }
+  }
+  paint();
+}
+
+/* --- generic trial-balance-from-ledger builder (#10) --- */
+function trialRowsFromBal(bal){
+  var rows=[];
+  ACCOUNTS.forEach(function(a){ var v=bal[a.id]; if(v===0) return; var nd=(a.normal==='D'),debit=0,credit=0; if(v>0){ if(nd) debit=v; else credit=v; } else { if(nd) credit=-v; else debit=-v; } rows.push({id:a.id,name:a.name,debit:debit,credit:credit}); });
+  return rows;
+}
+function stageLedger(stage){
+  var tacct={}, bal={}; ACCOUNTS.forEach(function(a){ tacct[a.id]=[]; bal[a.id]=0; });
+  function postAll(lines,di,src){ lines.forEach(function(L){ var side=L[1]>0?'D':'C', amt=L[1]>0?L[1]:L[2]; tacct[L[0]].push({side:side,amt:amt,date:di,src:src||'txn'}); var a=ACC[L[0]]; bal[L[0]]+=(a.normal===side?amt:-amt); }); }
+  EVENTS.forEach(function(e,k){ if(e.isTxn && S.done['ev_'+k]) postAll(e.lines,isoOf(e.date),'txn'); });
+  if(stage!=='utb'){ ADJ.forEach(function(a,k){ if(S.done['adj_'+k]) postAll(a.lines,isoOf('Dec 31'),'adj'); }); }
+  if(stage==='ptb'){ CLOSE.forEach(function(c,k){ if(S.done['close_'+k]) postAll(c.lines,isoOf('Dec 31'),'close'); }); }
+  return {tacct:tacct,bal:bal};
+}
+function buildTrialCheck(host,opts){
+  var lg=stageLedger(opts.stateKey);
+  var target=trialRowsFromBal(lg.bal), expTotal=target.reduce(function(s,r){return s+r.debit;},0), byId={};
+  target.forEach(function(r){ byId[r.id]=r; });
+  var st; try{ st=JSON.parse(S.inp[opts.stateKey]||'null'); }catch(_){ st=null; }
+  if(!st) st={rows: target.map(function(){return {a:'',d:'',c:''};})};
+  while(st.rows.length<target.length) st.rows.push({a:'',d:'',c:''});
+  function selectedIds(except){ var m={}; st.rows.forEach(function(r,ri){ if(ri!==except && r.a) m[r.a]=true; }); return m; }
+  function persist(){ S.inp[opts.stateKey]=JSON.stringify(st); scheduleSave(); }
+  function recalc(){
+    var td=0,tc=0; st.rows.forEach(function(r){ td+=parseAmt(r.d); tc+=parseAmt(r.c); });
+    $('#tbtd').textContent=fmt(td); $('#tbtc').textContent=fmt(tc);
+    var match=(td===expTotal&&tc===expTotal);
+    $('#tbtot').className='totrow '+(match?'ok':((td||tc)?'bad':''));
+    var badge=$('#tbbadge');
+    if(td===0&&tc===0) badge.innerHTML='';
+    else if(match) badge.innerHTML='<div class="totbadge ok">\u2713 Both columns total '+money(expTotal)+' \u2014 in balance!</div>';
+    else badge.innerHTML='<div class="totbadge bad">Not balanced yet \u2014 debit '+money(td)+' vs credit '+money(tc)+'. Keep reading the ledger.</div>';
+  }
+  function ledgerHtml(){
+    var used={}; st.rows.forEach(function(r){ if(r.a) used[r.a]=true; });
+    var posted=ACCOUNTS.filter(function(a){ return lg.tacct[a.id].length; });
+    var showEB=(opts.stateKey==='atb'||opts.stateKey==='ptb');
+    return posted.map(function(a){ return '<div style="opacity:'+(used[a.id]?'.38':'1')+'">'+tAccountHtml(a.id,{bb:isPermAcct(a.id),eb:showEB,entries:lg.tacct[a.id],bal:lg.bal[a.id]})+'</div>'; }).join('');
+  }
+  function repaintLedger(){ var c=host.querySelector('.tbledger .taccts'); if(!c) return; var p=host.querySelector('.tbledger'); var sc=p?p.scrollTop:0; c.innerHTML=ledgerHtml(); if(p) p.scrollTop=sc; }
+  function refreshOptions(){ $$('#tbbody .tbacc').forEach(function(sel){ var ri=+sel.getAttribute('data-ri'), sids=selectedIds(ri); Array.prototype.forEach.call(sel.querySelectorAll('option'), function(opt){ var id=opt.value; if(!id) return; var dis=!!sids[id]; opt.disabled=dis; if(ACC[id]) opt.textContent=ACC[id].name+(dis?' ✓':''); }); }); }
+  function updateWarning(){
+    var badNames=[]; st.rows.forEach(function(r){ if(r.a && !(lg.tacct[r.a]&&lg.tacct[r.a].length)) badNames.push(ACC[r.a].name); });
+    var w=$('#tbwarn'); if(!w) return;
+    if(badNames.length){ w.className='fb bad show'; w.innerHTML='⚠ Not in the ledger: <b>'+badNames.join(', ')+'</b>. These accounts have no balance — choose accounts that appear in the ledger above.'; }
+    else { w.className='fb'; w.innerHTML=''; }
+  }
+  function paint(){
+    var _psc=0, _pol=host.querySelector('.tbledger'); if(_pol) _psc=_pol.scrollTop;
+    var ledg=ledgerHtml();
+    var trh=st.rows.map(function(r,ri){ return '<tr data-ri="'+ri+'"><td><select class="tbacc" data-ri="'+ri+'">'+accountOptions(r.a,selectedIds(ri))+'</select></td><td class="r"><input class="amt tbd" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.d||'')+'"></td><td class="r"><input class="amt tbc" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.c||'')+'"></td></tr>'; }).join('');
+    host.innerHTML='<div class="tbwrap"><div class="tbledger"><div class="tbledgerh">\u{1F4D2} Ledger \u2014 read each balance (used accounts gray out)</div><div class="taccts" style="margin-top:8px">'+ledg+'</div></div>'+
+      '<div class="tbinput"><div class="tbledgerh" style="color:var(--ink)">Trial Balance \u2014 type each balance on its side</div><table class="tbtable" style="margin-top:8px"><thead><tr><th>Account</th><th class="r">Debit</th><th class="r">Credit</th></tr></thead><tbody id="tbbody">'+trh+'</tbody><tfoot><tr class="totrow" id="tbtot"><td>Total</td><td class="r" id="tbtd">0</td><td class="r" id="tbtc">0</td></tr></tfoot></table>'+
+      '<div class="fb" id="tbwarn"></div><div id="tbbadge"></div><div class="fb" id="tbfb"></div><div style="margin-top:12px"><button class="btn primary" id="tbcheck">Check the trial balance</button></div></div></div>';
+    var _pnl=host.querySelector('.tbledger'); if(_pnl) _pnl.scrollTop=_psc;
+    $$('#tbbody .tbacc').forEach(function(s){ s.onchange=function(){ st.rows[+s.getAttribute('data-ri')].a=s.value; persist(); repaintLedger(); updateWarning(); refreshOptions(); }; });
+    $$('#tbbody .tbd, #tbbody .tbc').forEach(function(inp){ inp.addEventListener('input',function(){ var ri=+inp.getAttribute('data-ri'); st.rows[ri][inp.classList.contains('tbd')?'d':'c']=inp.value; recalc(); persist(); }); });
+    updateWarning();
+    $('#tbcheck').onclick=check; recalc();
+  }
+  function check(){
+    var td=0,tc=0; st.rows.forEach(function(r){ td+=parseAmt(r.d); tc+=parseAmt(r.c); });
+    var allok=true, seen={};
+    $$('#tbbody tr').forEach(function(tr){
+      var ri=+tr.getAttribute('data-ri'), r=st.rows[ri], dInp=tr.querySelector('.tbd'), cInp=tr.querySelector('.tbc'), ok=false;
+      if(r.a&&byId[r.a]&&!seen[r.a]){ var t=byId[r.a]; ok=(parseAmt(r.d)===t.debit && parseAmt(r.c)===t.credit); }
+      if(r.a) seen[r.a]=true;
+      dInp.classList.toggle('ok',ok&&parseAmt(r.d)>0); dInp.classList.toggle('bad',!ok);
+      cInp.classList.toggle('ok',ok&&parseAmt(r.c)>0); cInp.classList.toggle('bad',!ok);
+      if(!ok) allok=false;
+    });
+    var match=(td===expTotal&&tc===expTotal), fb=$('#tbfb');
+    if(allok&&match){ fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the trial balance is complete and balanced at '+money(expTotal)+'.'; var b=$('#tbcheck'); b.textContent=(opts.contLabel||'Continue')+' \u2192'; b.onclick=opts.onDone; }
+    else if(!match){ fb.className='fb bad show'; fb.innerHTML='The two column totals must be equal and match the ledger. Read each balance and put it on its normal side.'; }
+    else { fb.className='fb bad show'; fb.innerHTML='Some rows are off (red). Check the account, the amount, and the column (debit vs credit).'; }
+  }
+  paint();
+}
+
+/* --- Step 1: Unadjusted TB --- */
+function renderUnadj(){
+  if(yeGate(S.done['unadj'], stageDone('record'), 'record', 'Record Transactions')) return;
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 1 of 6</div><h2 class="h">Unadjusted Trial Balance</h2><p class="lede">List every account\u2019s balance from the ledger, then check that debits = credits. Pick each account from the dropdown; used accounts gray out in the ledger.</p><div id="tbhost"></div></div>');
+  buildTrialCheck($('#tbhost'),{ stateKey:'utb', contLabel:'Continue to Adjusting Entries', onDone:function(){ S.snap.unadj=trialTableHtml(true); markDone('unadj'); scoreAdd('unadj',8); unlock('ye_adj'); saveGame(true); goStage('ye_adj'); } });
+  yeRedoBtn(S.done['unadj'],'ye_unadj');
+}
+
+/* --- Step 2 (adjust) & Step 5 (close): shared sequence (#additional: user posts) --- */
+function renderSequence(cfg){
+  var list=cfg.list;
+  function firstInc(){ for(var i=0;i<list.length;i++){ if(!S.done[cfg.doneP+'_'+i]) return i; } return list.length; }
+  function reached(i){ return !!S.done[cfg.doneP+'_'+i] || i===firstInc(); }
+  if(!reached(S[cfg.idxKey])) S[cfg.idxKey]=Math.min(firstInc(),list.length-1);
+  var allDone=list.every(function(x,i){return S.done[cfg.doneP+'_'+i];});
+  var i=S[cfg.idxKey], a=list[i];
+  var trail='<div class="trail">'+list.map(function(x,k){ var done=!!S.done[cfg.doneP+'_'+k], rch=reached(k), cur=(k===i); return '<div class="tnode'+(done?' done':'')+(cur?' cur':'')+(rch?' reached':'')+'" data-k="'+k+'">'+(cur?'<span class="paw">\u{1F43E}</span>':'')+'<div class="dot">'+(done?'\u2713':(k+1))+'</div><div class="dd">'+cfg.short+' '+(k+1)+'</div></div>'; }).join('')+'</div>';
+  var entryInner='<div class="tlabel">'+cfg.itemWord+' '+(i+1)+' of '+list.length+'</div><div class="tdate">December 31, 2025</div><div style="font-weight:800;font-size:16px;margin:2px 0 6px">'+esc(a.title)+'</div><div class="note warn"><b>Why:</b> '+esc(a.why)+'</div><div id="seqHost"></div>';
+  var card2 = cfg.showAtb
+    ? '<div class="card"><div class="fswrap"><div class="atbpane"><h4>Adjusted Trial Balance</h4>'+trialTableHtml(true,trialRowsFromBal(snapBal()))+'</div><div>'+entryInner+'</div></div></div>'
+    : '<div class="card">'+entryInner+'</div>';
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step '+cfg.stepNo+' of 6</div><h2 class="h">'+cfg.title+'</h2><p class="lede">'+cfg.intro+'</p>'+trail+
+    (allDone?'<div class="note good" style="margin-top:6px">\u2713 All '+list.length+' done! Use the button under the last entry to continue.</div>':'')+'</div>'+card2);
+  $$('.tnode[data-k]').forEach(function(n){ var k=+n.getAttribute('data-k'); if(reached(k)){ n.onclick=function(){ S[cfg.idxKey]=k; saveGame(true); render(); }; } });
+  renderSeqBody(cfg,i,a,firstInc);
+}
+function renderSeqBody(cfg,i,a,firstInc){
+  var host=$('#seqHost'); if(!host) return; var list=cfg.list;
+  if(S.done[cfg.doneP+'_'+i]){
+    var allSeqDone=list.every(function(x,k){return S.done[cfg.doneP+'_'+k];});
+    var nextInc=firstInc();
+    var leftBtn = allSeqDone ? '<button class="btn primary big" id="seqCont">'+cfg.contLabel+' \u2192</button>'
+      : (nextInc<list.length ? '<button class="btn primary big" id="seqNextBtn">Next '+cfg.itemWord.toLowerCase()+' \u2192</button>' : '');
+    host.innerHTML='<div class="note good" style="margin-top:12px">\u2713 Journalized and posted.</div>'+adjEntryHtml(a)+'<div class="evfoot">'+leftBtn+'<div style="flex:1"></div><button class="btn ghost" id="redoSeq">\u21bb Redo this entry</button></div>';
+    var rs=$('#redoSeq'); if(rs) rs.onclick=function(){ redoSeqEntry(cfg.doneP,cfg.idxKey,cfg.stepKey,cfg.postKey,cfg.jePrefix,i); };
+    var nb=$('#seqNextBtn'); if(nb) nb.onclick=function(){ S[cfg.idxKey]=nextInc; saveGame(true); render(); };
+    var cb=$('#seqCont'); if(cb) cb.onclick=function(){ unlock(cfg.nextStage); goStage(cfg.nextStage); };
+    return;
+  }
+  var step=(S[cfg.stepKey][i]||0), html='';
+  if(step>0) html+=stepDoneSummary('Journalize','Entry written in the journal.');
+  host.innerHTML=html+(step===0?'<div class="step active"><div class="shead"><span class="sn">1</span>Journalize</div><div class="sbody"><div id="sqj"></div></div></div>':'<div class="step active"><div class="shead"><span class="sn">2</span>Post it yourself</div><div class="sbody"><p class="muted" style="font-size:13px;margin-bottom:8px">Drag each amount into the right T-account.</p><div id="sqp"></div></div></div>');
+  if(step===0){ buildJournalize($('#sqj'),{ expectLines:a.lines, dateIso:isoOf('Dec 31'), prefillDate:isoOf('Dec 31'), keyPrefix:cfg.jePrefix+'_'+i, checkLabel:'Check the entry', onPass:function(date,lines){ recordJournal(date,cfg.kind,'('+a.title+')',a.lines); S[cfg.stepKey][i]=1; saveGame(true); renderSeqBody(cfg,i,a,firstInc); } }); }
+  else { buildPosting($('#sqp'),{ lines:a.lines, dateIso:isoOf('Dec 31'), src:cfg.kind, selKey:cfg.jePrefix+'sel_'+i, getPlaced:function(){ return S[cfg.postKey][i]||[]; }, setPlaced:function(p){ S[cfg.postKey][i]=p; }, onComplete:function(){ markDone(cfg.doneP+'_'+i); scoreAdd(cfg.doneP+'_'+i,1); saveGame(true); render(); } }); }
+}
+function renderAdj(){ if(yeGate(stageDone('ye_adj'), S.done['unadj'], 'ye_unadj', 'Unadjusted Trial Balance')) return; renderSequence({list:ADJ, doneP:'adj', idxKey:'adjIndex', stepKey:'adjStep', postKey:'adjPost', jePrefix:'aj', kind:'adj', stepNo:2, short:'Adj', itemWord:'Adjustment', title:'Adjusting Entries', intro:'On December 31, update the accounts for things that happened over time. Journalize each one, then <b>post it yourself</b>.', nextStage:'ye_adjtb', contLabel:'Continue to Adjusted TB'}); }
+function renderClose(){ if(yeGate(stageDone('ye_close'), S.done['is']&&S.done['re']&&S.done['bs'], 'ye_fs', 'Financial Statements')) return; renderSequence({list:CLOSE, doneP:'close', idxKey:'closeIndex', stepKey:'closeStep', postKey:'closePost', jePrefix:'cj', kind:'close', stepNo:5, short:'Close', itemWord:'Closing entry', title:'Closing Entries', intro:'Zero out the temporary accounts (revenue, expenses, dividends) into Retained Earnings. Journalize each, then <b>post it yourself</b>.', nextStage:'ye_postclose', contLabel:'Continue to Post-Closing TB', showAtb:true}); }
+
+/* --- Step 3: Adjusted TB (snapshot financials BEFORE closing) --- */
+function renderAdjtb(){
+  if(yeGate(S.done['adjtb'], stageDone('ye_adj'), 'ye_adj', 'Adjusting Entries')) return;
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 3 of 6</div><h2 class="h">Adjusted Trial Balance</h2><p class="lede">After the six adjustments, list every balance again and check it still balances. These are the numbers your financial statements will use.</p><div id="tbhost"></div></div>');
+  buildTrialCheck($('#tbhost'),{ stateKey:'atb', contLabel:'Continue to Financial Statements', onDone:function(){ S.snap.adjtb=trialTableHtml(true); S.snap.adjRows=trialRows(); S.snap.bal=cloneBal(); S.snap.fs=computeFS(); markDone('adjtb'); scoreAdd('adjtb',8); unlock('ye_fs'); saveGame(true); goStage('ye_fs'); } });
+  yeRedoBtn(S.done['adjtb'],'ye_adjtb');
+}
+
+/* --- Step 4: Financial Statements (#11 + additional) --- */
+function snapBal(){ return S.snap.bal||stageLedger('atb').bal; }
+function fsRow(label,key,paren,cls){ return '<div class="fsrow '+(cls||'')+'"><span>'+label+'</span><input class="amt'+(paren?' paren':'')+'" id="'+key+'" inputmode="numeric" placeholder="'+(paren?'(0)':'0')+'"></div>'; }
+function bsRow(label,key,paren,cls){ return '<div class="bsrow '+(cls||'')+'"><span>'+label+'</span><input class="amt'+(paren?' paren':'')+'" id="'+key+'" inputmode="numeric" placeholder="'+(paren?'(0)':'0')+'"></div>'; }
+function mark(key,correct){ var el=$('#'+key); if(!el) return true; var v=parseAmt(S.inp[key]); var ok=(v===correct); el.classList.toggle('ok',ok); el.classList.toggle('bad',!ok); return ok; }
+function gotoNextFs(){ S.fsTab = !S.done['is']?'is':(!S.done['re']?'re':(!S.done['bs']?'bs':S.fsTab)); }
+function fsNextLabel(){ if(!S.done['is']) return 'Next \u2014 Income Statement \u2192'; if(!S.done['re']) return 'Next \u2014 Retained Earnings \u2192'; if(!S.done['bs']) return 'Next \u2014 Balance Sheet \u2192'; return 'See all three \u2192'; }
+
+function renderFS(){
+  if(yeGate(S.done['is']&&S.done['re']&&S.done['bs'], S.done['adjtb'], 'ye_adjtb', 'Adjusted Trial Balance')) return;
+  var adjRows=S.snap.adjRows||trialRowsFromBal(snapBal()), tab=S.fsTab||'is';
+  var paneRows=adjRows.map(function(r){ return '<tr><td>'+r.name+'</td><td class="r">'+(r.debit?fmt(r.debit):'')+'</td><td class="r">'+(r.credit?fmt(r.credit):'')+'</td></tr>'; }).join('');
+  var ptd=adjRows.reduce(function(s,r){return s+r.debit;},0), ptc=adjRows.reduce(function(s,r){return s+r.credit;},0);
+  var pane='<div class="atbpane"><h4>Adjusted Trial Balance</h4>'+trialTableHtml(true,trialRowsFromBal(snapBal()))+'</div>';
+  var tabs='<div class="fstabs">'+[['is','1 \u00b7 Income Statement'],['re','2 \u00b7 Retained Earnings'],['bs','3 \u00b7 Balance Sheet']].map(function(t){ var dn=S.done[t[0]]; return '<button class="fstab'+(tab===t[0]?' cur':'')+(dn?' done':'')+'" data-tab="'+t[0]+'">'+(dn?'\u2713 ':'')+t[1]+'</button>'; }).join('')+'</div>';
+  var body=tab==='is'?isHtml():(tab==='re'?reHtml():bsHtml());
+  var allDone=S.done['is']&&S.done['re']&&S.done['bs'];
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 4 of 6</div><h2 class="h">Financial Statements</h2><p class="lede">Build all three statements from the Adjusted Trial Balance on the left. Switch tabs freely \u2014 your numbers stay saved.</p>'+
+    (allDone?'<div class="note good">\u2713 All three statements are correct!</div>':'')+
+    tabs+'<div class="fswrap">'+pane+'<div>'+body+'</div></div>'+
+    (allDone?'<div class="evfoot"><button class="btn primary big" id="toClose">Continue to Closing Entries \u2192</button><div style="flex:1"></div><button class="btn ghost" id="redoFs">\u21bb Redo this step</button></div>':'')+'</div>');
+  $$('.fstab').forEach(function(b){ b.onclick=function(){ S.fsTab=b.getAttribute('data-tab'); saveGame(true); render(); }; });
+  if(allDone){ var c=$('#toClose'); if(c) c.onclick=function(){ unlock('ye_close'); goStage('ye_close'); }; var rf=$('#redoFs'); if(rf) rf.onclick=function(){ redoStage('ye_fs'); }; }
+  if(tab==='is') wireIS(); else if(tab==='re') wireRE(); else wireBS();
+}
+function isRevs(){ var b=snapBal(); return ACCOUNTS.filter(function(a){return a.group==='Revenue'&&b[a.id]!==0;}); }
+function isExps(){ var b=snapBal(); return ACCOUNTS.filter(function(a){return a.group==='Expenses'&&b[a.id]!==0;}); }
+function isHtml(){
+  return '<div class="fs"><div class="fhd">Pawsome Pet Care, Inc.<span class="fttl">Income Statement</span><small>For the Year Ended December 31, 2025</small></div>'+
+    '<div class="fsrow head"><span>Revenue</span><span></span></div>'+isRevs().map(function(a){return fsRow(a.name,'is_'+a.id,false,'ind');}).join('')+
+    '<div class="fsrow head"><span>Expenses</span><span></span></div>'+isExps().map(function(a){return fsRow(a.name,'is_'+a.id,true,'ind amtindent');}).join('')+
+    fsRow('Total Expenses','is_totexp',true,'sub')+fsRow('Net Income','is_ni',false,'tot')+
+    '</div><div class="fb" id="isfb"></div><div style="margin-top:12px"><button class="btn primary" id="isCheck">Check the Income Statement</button></div>';
+}
+function wireIS(){
+  var b=snapBal(), revs=isRevs(), exps=isExps();
+  revs.forEach(function(a){ bindInput($('#is_'+a.id),'is_'+a.id); }); exps.forEach(function(a){ bindParen($('#is_'+a.id),'is_'+a.id); });
+  bindParen($('#is_totexp'),'is_totexp'); bindInput($('#is_ni'),'is_ni');
+  $('#isCheck').onclick=function(){
+    var fs=S.snap.fs||computeFS(snapBal()), ok=true;
+    revs.forEach(function(a){ ok=mark('is_'+a.id,b[a.id])&&ok; });
+    exps.forEach(function(a){ ok=mark('is_'+a.id,b[a.id])&&ok; });
+    ok=mark('is_totexp',fs.expTotal)&&ok; ok=mark('is_ni',fs.ni)&&ok;
+    var fb=$('#isfb');
+    if(ok){ markDone('is'); scoreAdd('is',4); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Income Statement is correct!'; var cb=$('#isCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Some amounts are off (red). Read each revenue and expense from the Adjusted TB. Net Income = Revenue \u2212 Total Expenses.'; }
+  };
+}
+function reHtml(){
+  return '<div class="fs"><div class="fhd">Pawsome Pet Care, Inc.<span class="fttl">Retained Earnings Statement</span><small>For the Year Ended December 31, 2025</small></div>'+
+    '<div class="fsrow"><span>Retained Earnings, Jan 1</span><input class="amt" id="re_beg" value="0" disabled></div>'+fsRow('Add: Net Income','re_ni',false)+fsRow('Less: Dividends','re_div',true,'sub')+fsRow('Retained Earnings, Dec 31','re_end',false,'tot')+
+    '</div><div class="tip" style="margin-top:10px"><span class="ti">\u2139</span><span>Dividends reduce equity \u2014 type the number and it shows as <b>(400)</b> to mark it as subtracted.</span></div><div class="fb" id="refb"></div><div style="margin-top:12px"><button class="btn primary" id="reCheck">Check the Retained Earnings Statement</button></div>';
+}
+function wireRE(){
+  S.inp['re_beg']='0'; bindInput($('#re_ni'),'re_ni'); bindParen($('#re_div'),'re_div'); bindInput($('#re_end'),'re_end');
+  $('#reCheck').onclick=function(){
+    var fs=S.snap.fs||computeFS(snapBal()), ok=true;
+    ok=mark('re_beg',fs.begRE)&&ok; ok=mark('re_ni',fs.ni)&&ok; ok=mark('re_div',fs.div)&&ok; ok=mark('re_end',fs.endRE)&&ok;
+    var fb=$('#refb');
+    if(ok){ markDone('re'); scoreAdd('re',3); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Retained Earnings Statement is correct!'; var cb=$('#reCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Check the numbers. Ending RE = Beginning RE + Net Income \u2212 Dividends.'; }
+  };
+}
+function bsHtml(){
+  var assets='<div class="bscol left"><div class="bh">Assets</div>'+
+    bsRow('Cash','bs_cash')+bsRow('Accounts Receivable','bs_ar')+bsRow('Supplies','bs_sup')+bsRow('Prepaid Insurance','bs_ppi')+
+    '<div class="bsrow"><span>Equipment</span><span class="eqpair"><input class="amt" id="bs_equip" inputmode="numeric" placeholder="0"><span class="eqspacer"></span></span></div>'+
+    '<div class="bsrow ind"><span>Less: Accumulated Depreciation - Equipment</span><span class="eqpair"><input class="amt paren" id="bs_accdep" inputmode="numeric" placeholder="(0)"><input class="amt" id="bs_equipnet" inputmode="numeric" placeholder="net"></span></div>'+
+    bsRow('Total Assets','bs_ta',false,'tot pinbottom')+'</div>';
+  var le='<div class="bscol"><div class="bh">Liabilities &amp; Stockholders\u2019 Equity</div>'+
+    bsRow('Accounts Payable','bs_ap')+bsRow('Unearned Service Revenue','bs_un')+bsRow('Salaries Payable','bs_sp')+bsRow('Notes Payable','bs_np')+bsRow('Total Liabilities','bs_tl',false,'tot')+
+    bsRow('Common Stock','bs_cs')+bsRow('Retained Earnings','bs_re')+bsRow('Total Stockholders\u2019 Equity','bs_te',false,'tot')+bsRow('Total Liabilities &amp; Equity','bs_tle',false,'tot pinbottom')+'</div>';
+  return '<div class="fhd" style="border-radius:var(--r) var(--r) 0 0">Pawsome Pet Care, Inc.<span class="fttl">Balance Sheet</span><small>As of December 31, 2025</small></div><div class="bst" style="border-top:none">'+assets+le+'</div><div class="tip" style="margin-top:10px"><span class="ti">\u2139</span><span>Equipment shows at cost, then <b>(Accumulated Depreciation)</b> is subtracted to give the net book value on the right. Both sides of the balance sheet must total the same number.</span></div><div class="fb" id="bsfb"></div><div style="margin-top:12px"><button class="btn primary" id="bsCheck">Check the Balance Sheet</button></div>';
+}
+function wireBS(){
+  var b=snapBal(), fs=S.snap.fs||computeFS(snapBal());
+  ['bs_cash:cash','bs_ar:ar','bs_sup:sup','bs_ppi:ppi','bs_equip:equip','bs_ap:ap','bs_un:unearned','bs_sp:salpay','bs_np:notes','bs_cs:cs'].forEach(function(p){ var k=p.split(':')[0]; bindInput($('#'+k),k); });
+  bindParen($('#bs_accdep'),'bs_accdep'); bindInput($('#bs_equipnet'),'bs_equipnet'); bindInput($('#bs_re'),'bs_re');
+  bindInput($('#bs_ta'),'bs_ta'); bindInput($('#bs_tl'),'bs_tl'); bindInput($('#bs_te'),'bs_te'); bindInput($('#bs_tle'),'bs_tle');
+  $('#bsCheck').onclick=function(){
+    var ok=true;
+    ok=mark('bs_cash',b.cash)&&ok; ok=mark('bs_ar',b.ar)&&ok; ok=mark('bs_sup',b.sup)&&ok; ok=mark('bs_ppi',b.ppi)&&ok;
+    ok=mark('bs_equip',b.equip)&&ok; ok=mark('bs_accdep',b.accdep)&&ok; ok=mark('bs_equipnet',b.equip-b.accdep)&&ok; ok=mark('bs_ta',fs.totalAssets)&&ok;
+    ok=mark('bs_ap',b.ap)&&ok; ok=mark('bs_un',b.unearned)&&ok; ok=mark('bs_sp',b.salpay)&&ok; ok=mark('bs_np',b.notes)&&ok; ok=mark('bs_tl',fs.totalLiab)&&ok;
+    ok=mark('bs_cs',b.cs)&&ok; ok=mark('bs_re',fs.endRE)&&ok; ok=mark('bs_te',fs.totalEquity)&&ok; ok=mark('bs_tle',fs.totalLiab+fs.totalEquity)&&ok;
+    var fb=$('#bsfb');
+    if(ok){ markDone('bs'); scoreAdd('bs',6); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Balance Sheet is correct \u2014 both sides balance!'; var cb=$('#bsCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    else { fb.className='fb bad show'; fb.innerHTML='Some amounts are off (red). Use the Adjusted TB. Net book value = Equipment \u2212 Accumulated Depreciation, and the two sides must total the same.'; }
+  };
+}
+
+/* --- Step 6: Post-Closing TB --- */
+function renderPostclose(){
+  if(yeGate(S.done['postclose'], stageDone('ye_close'), 'ye_close', 'Closing Entries')) return;
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 6 of 6</div><h2 class="h">Post-Closing Trial Balance</h2><p class="lede">After closing, only the permanent accounts (assets, liabilities, equity) remain. List them and check the books still balance.</p><div id="tbhost"></div></div>');
+  buildTrialCheck($('#tbhost'),{ stateKey:'ptb', contLabel:'Finish & Submit', onDone:function(){ S.snap.postclose=trialTableHtml(true); markDone('postclose'); scoreAdd('postclose',8); unlock('submit'); saveGame(true); goStage('submit'); } });
+  yeRedoBtn(S.done['postclose'],'ye_postclose');
+}
+
+/* --- static statements for review / print --- */
+function prFs(title,period,rows){ return '<div class="prfs"><div class="prfhd"><div class="prco">Pawsome Pet Care, Inc.</div><div class="prtt">'+title+'</div><div class="prpd">'+period+'</div></div><table>'+rows+'</table></div>'; }
+function isStatic(){
+  var b=snapBal(), fs=S.snap.fs||computeFS(snapBal());
+  function row3(lbl,c1,c2,cls){ return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="lbl'+(cls&&cls.indexOf('ind')<0&&cls.indexOf('sec')<0?'':'')+'">'+lbl+'</td><td class="c1">'+(c1||'')+'</td><td class="c2">'+(c2||'')+'</td></tr>'; }
+  var rev=isRevs().map(function(a,i){ return '<tr><td class="lbl ind">'+a.name+'</td><td class="c1"></td><td class="c2">'+(i===0?money(b[a.id]):fmt(b[a.id]))+'</td></tr>'; }).join('');
+  var exp=isExps().map(function(a){ return '<tr><td class="lbl ind">'+a.name+'</td><td class="c1">'+fmt(b[a.id])+'</td><td class="c2"></td></tr>'; }).join('');
+  return prFs('Income Statement','For the Year Ended December 31, 2025',
+    '<tr class="sec"><td class="lbl">Revenue</td><td class="c1"></td><td class="c2"></td></tr>'+rev+
+    '<tr class="sec"><td class="lbl">Expenses</td><td class="c1"></td><td class="c2"></td></tr>'+exp+
+    '<tr><td class="lbl ind">Total Expenses</td><td class="c1"></td><td class="c2"><span class="u1">('+fmt(fs.expTotal)+')</span></td></tr>'+
+    '<tr><td class="lbl">Net Income</td><td class="c1"></td><td class="c2"><span class="u2">'+money(fs.ni)+'</span></td></tr>');
+}
+function reStatic(){
+  var fs=S.snap.fs||computeFS(snapBal());
+  return prFs('Retained Earnings Statement','For the Year Ended December 31, 2025',
+    '<tr><td class="lbl">Retained Earnings, January 1, 2025</td><td class="c2">'+money(fs.begRE)+'</td></tr>'+
+    '<tr><td class="lbl">Add: Net Income</td><td class="c2">'+fmt(fs.ni)+'</td></tr>'+
+    '<tr><td class="lbl">Less: Dividends</td><td class="c2"><span class="u1">('+fmt(fs.div)+')</span></td></tr>'+
+    '<tr><td class="lbl">Retained Earnings, December 31, 2025</td><td class="c2"><span class="u2">'+money(fs.endRE)+'</span></td></tr>');
+}
+function bsStatic(){
+  var b=snapBal(), fs=S.snap.fs||computeFS(snapBal()), net=b.equip-b.accdep;
+  return prFs('Balance Sheet','As of December 31, 2025',
+    '<tr class="sec"><td class="lbl">Assets</td><td class="c1"></td><td class="c2"></td></tr>'+
+    '<tr><td class="lbl ind">Cash</td><td class="c1"></td><td class="c2">'+money(b.cash)+'</td></tr>'+
+    '<tr><td class="lbl ind">Accounts Receivable</td><td class="c1"></td><td class="c2">'+fmt(b.ar)+'</td></tr>'+
+    '<tr><td class="lbl ind">Supplies</td><td class="c1"></td><td class="c2">'+fmt(b.sup)+'</td></tr>'+
+    '<tr><td class="lbl ind">Prepaid Insurance</td><td class="c1"></td><td class="c2">'+fmt(b.ppi)+'</td></tr>'+
+    '<tr><td class="lbl ind">Equipment</td><td class="c1">'+fmt(b.equip)+'</td><td class="c2"></td></tr>'+
+    '<tr><td class="lbl ind">Less: Accumulated Depreciation - Equipment</td><td class="c1"><span class="u1">('+fmt(b.accdep)+')</span></td><td class="c2"><span class="u1">'+fmt(net)+'</span></td></tr>'+
+    '<tr><td class="lbl">Total Assets</td><td class="c1"></td><td class="c2"><span class="u2">'+money(fs.totalAssets)+'</span></td></tr>'+
+    '<tr class="sec"><td class="lbl">Liabilities &amp; Stockholders\u2019 Equity</td><td class="c1"></td><td class="c2"></td></tr>'+
+    '<tr class="subh"><td class="lbl">Liabilities</td><td class="c1"></td><td class="c2"></td></tr>'+
+    '<tr><td class="lbl ind">Accounts Payable</td><td class="c1"></td><td class="c2">'+money(b.ap)+'</td></tr>'+
+    '<tr><td class="lbl ind">Unearned Service Revenue</td><td class="c1"></td><td class="c2">'+fmt(b.unearned)+'</td></tr>'+
+    '<tr><td class="lbl ind">Salaries Payable</td><td class="c1"></td><td class="c2">'+fmt(b.salpay)+'</td></tr>'+
+    '<tr><td class="lbl ind">Notes Payable</td><td class="c1"></td><td class="c2"><span class="u1">'+fmt(b.notes)+'</span></td></tr>'+
+    '<tr><td class="lbl ind">Total Liabilities</td><td class="c1"></td><td class="c2">'+fmt(fs.totalLiab)+'</td></tr>'+
+    '<tr class="subh"><td class="lbl">Stockholders\u2019 Equity</td><td class="c1"></td><td class="c2"></td></tr>'+
+    '<tr><td class="lbl ind">Common Stock</td><td class="c1"></td><td class="c2">'+fmt(b.cs)+'</td></tr>'+
+    '<tr><td class="lbl ind">Retained Earnings</td><td class="c1"></td><td class="c2"><span class="u1">'+fmt(fs.endRE)+'</span></td></tr>'+
+    '<tr><td class="lbl ind">Total Stockholders\u2019 Equity</td><td class="c1"></td><td class="c2">'+fmt(fs.totalEquity)+'</td></tr>'+
+    '<tr><td class="lbl">Total Liabilities &amp; Equity</td><td class="c1"></td><td class="c2"><span class="u2">'+money(fs.totalLiab+fs.totalEquity)+'</span></td></tr>');
+}
+function submissionSheetHtml(){
+  var used=ACCOUNTS.filter(function(a){return (S.tacct[a.id]||[]).length;});
+  var ledgerHtml=used.length?'<div class="taccts">'+used.map(function(a){return tAccountHtml(a.id,{});}).join('')+'</div>':'<p class="muted">No postings yet.</p>';
+  function H(t){ return '<h2 style="font-size:14px;margin-top:14px;border-bottom:1px solid #000;padding-bottom:3px">'+t+'</h2>'; }
+  return '<div class="prsheet" style="border:1px solid var(--line);border-radius:var(--r);padding:16px;background:#fff;margin-top:8px">'+
+    '<h1 style="font-size:18px;margin-bottom:2px">Pawsome Accounting Quest \u2014 Submission</h1>'+
+    '<div class="prmeta" style="display:flex;gap:22px;margin:6px 0 4px;font-size:13px;flex-wrap:wrap"><span><b>Name:</b> '+(S.user?esc(S.user.first+' '+S.user.last):'\u2014')+'</span><span><b>uNID:</b> '+(S.user?esc(S.user.unid):'\u2014')+'</span><span><b>Score:</b> '+scoreShown()+'/100</span></div>'+
+    '<div class="prmeta" style="display:flex;gap:22px;margin:0 0 4px;font-size:12px;color:#444;flex-wrap:wrap"><span><b>Started:</b> '+fmtClockFull(S.startedAt)+'</span><span><b>Printed:</b> '+fmtClockFull(S.finishedAt||Date.now())+'</span><span><b>Time to complete:</b> '+fmtDur((S.finishedAt||Date.now())-S.startedAt)+'</span></div>'+
+    H('General Journal')+journalBodyHtml(null)+
+    H('General Ledger (T-accounts)')+ledgerHtml+
+    H('Unadjusted Trial Balance')+(S.snap.unadj||'<p class="muted">\u2014</p>')+
+    H('Adjusted Trial Balance')+trialTableHtml(true,trialRowsFromBal(snapBal()))+
+    H('Income Statement')+isStatic()+
+    H('Retained Earnings Statement')+reStatic()+
+    H('Balance Sheet')+bsStatic()+
+    H('Post-Closing Trial Balance')+(S.snap.postclose||trialTableHtml(true))+
+    '</div>';
+}
+
+/* --- Submission (#22) --- */
+function renderSubmit(){
+  var allDone=stageDone('record')&&S.done['unadj']&&stageDone('ye_adj')&&S.done['adjtb']&&S.done['is']&&S.done['re']&&S.done['bs']&&stageDone('ye_close')&&S.done['postclose'];
+  var nm=S.user?esc(S.user.first+' '+S.user.last):'(no name)';
+  setMain('<div class="card"><div class="eyebrow">Submission</div><h2 class="h">Print &amp; submit your work \u{1F4C4}</h2>'+
+    (allDone?'<div class="note good">\u2713 You completed the full accounting cycle for Pawsome Pet Care, Inc.!</div>':'<div class="note warn">Some steps are still open. You can still print, but finish every stage for full credit.</div>')+
+    '<div class="savestatus" style="margin-top:10px"><span><b>Name:</b> '+nm+'</span><span><b>uNID:</b> '+(S.user?esc(S.user.unid):'\u2014')+'</span><span style="flex:1"></span><span><b>Score:</b> '+scoreShown()+'/100 &middot; <b>Progress:</b> '+progressPct()+'%</span></div>'+
+    '<p class="lede" style="margin-top:12px">Press the button to open your browser\u2019s print dialog, choose <b>\u201cSave as PDF\u201d</b>, and submit the file to your instructor.</p>'+
+    '<div style="margin-top:6px"><button class="btn primary big" id="printBtn">\u{1F5A8}\uFE0F  Print / Save as PDF</button></div>'+
+    '<h3 class="sh" style="margin-top:18px">Preview of what will be printed</h3>'+submissionSheetHtml()+'</div>');
+  $('#printBtn').onclick=function(){ S.finishedAt=Date.now(); saveGame(true); updateTimer(); $('#printArea').innerHTML=submissionSheetHtml(); window.print(); };
+}
+
+/* ===================== WIRING + BOOT ===================== */
+document.addEventListener('click', function(e){
+  if(e.target&&e.target.id==='redoBtn'){ redoLesson(S.stage); return; }
+  var node=e.target.closest&&e.target.closest('.node.clickable');
+  if(node){ var key=node.getAttribute('data-stage'); if(STAGE_IDX[key]<=S.unlocked){ goStage(key); } }
+});
+document.addEventListener('input', function(e){
+  var el=e.target;
+  var cl=el.classList;
+  if(el && el.tagName==='INPUT' && el.getAttribute && el.getAttribute('inputmode')==='numeric' && cl && !cl.contains('paren') && !cl.contains('nocomma')){
+    var raw=el.value.replace(/[^0-9]/g,'');
+    var fnum = raw ? Number(raw).toLocaleString('en-US') : '';
+    if(fnum!==el.value){ var pos=el.selectionStart, old=el.value.length; el.value=fnum; var np=pos+(fnum.length-old); try{ el.setSelectionRange(np,np); }catch(_){ } }
+  }
+}, true);
+$('#ledgerBtn').onclick=openLedger;
+$('#journalBtn').onclick=openJournal;
+$('#ledgerClose').onclick=function(){ $('#ledgerModal').classList.remove('show'); };
+$('#journalClose').onclick=function(){ $('#journalModal').classList.remove('show'); };
+[$('#ledgerModal'),$('#journalModal')].forEach(function(m){ m.addEventListener('click',function(ev){ if(ev.target===m) m.classList.remove('show'); }); });
+document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'){ $('#ledgerModal').classList.remove('show'); $('#journalModal').classList.remove('show'); } });
+$('#saveBtn').onclick=function(){ saveGame(false); };
+$('#resetBtn').onclick=function(){ if(window.confirm('Reset everything? Your progress, score, and saved game will be erased, and you will start over from the beginning.')){ clearSave(); S=freshState(); _prevStage=null; showIdentity(); updateHud(); render(); } };
+wireIdentity();
+
+(function boot(){
+  var saved=loadGame();
+  S = saved ? saved : freshState();
+  if(S.user && !S.startedAt) S.startedAt=Date.now();
+  updateHud();
+  setInterval(updateTimer,1000); updateTimer();
+  if(!S.user){ showIdentity(); } else { render(); }
+})();
+</script>
+</body>
+</html>
