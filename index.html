@@ -246,8 +246,10 @@
   .bsT .dzone{min-height:120px} .bsT .dzbody{flex:1;align-content:flex-start}
   .isre{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
   @media(max-width:560px){ .bsT,.isre{grid-template-columns:1fr} .bsT{gap:9px} }
-  .twoform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:560px){ .twoform{grid-template-columns:1fr} .jdboxes{grid-template-columns:1fr} .rules{grid-template-columns:1fr} }
+  .twoform{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+  @media(max-width:560px){ .twoform{grid-template-columns:minmax(0,1fr)} .jdboxes{grid-template-columns:minmax(0,1fr)} .rules{grid-template-columns:minmax(0,1fr)} }
+  .fcol{min-width:0}
+  .farow .facc{width:0}
   .forms .formcard{min-width:0;overflow-x:auto}
   .fcol{border:1px solid var(--line2);padding:10px;background:var(--panel2)}
   .fcolh{font-weight:700;font-size:12px;text-align:center;padding:5px;margin-bottom:8px;color:#fff;letter-spacing:.06em}
@@ -399,6 +401,7 @@
 
   /* ---- financial statements ---- */
   .fswrap{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px;align-items:start}
+  @media(max-width:840px){ .fswrap{grid-template-columns:minmax(0,1fr)} }
   @media(max-width:840px){ .fswrap{grid-template-columns:1fr} }
   .atbpane{border:2px solid var(--ink);background:var(--panel2);padding:11px;position:sticky;top:74px}
   @media(max-width:840px){ .atbpane{position:static} }
@@ -427,6 +430,7 @@
   .fsrow.head{font-weight:700;background:var(--panel2);color:var(--ink)}
   .fsrow input.amt,.bsrow input.amt{font-family:var(--mono);font-size:13px;padding:6px 8px;border:2px solid var(--ink);width:118px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
   .fsrow.amtindent input.amt{margin-right:118px}
+  @media(max-width:560px){ .fs .fsrow.amtindent input.amt{margin-right:0} .fs .fsrow input.amt,.bst .bsrow input.amt{width:92px} .fs .fsrow{padding:6px 9px} .fs .fsrow.ind{padding-left:16px} .fs{min-width:0} }
   .eqpair{display:grid;grid-template-columns:56px 56px;gap:5px;align-items:center;flex:0 0 auto}
   .bsrow .eqpair input.amt{flex:none;width:100%} .eqspacer{display:block;width:100%}
   .fsrow input.amt.ok,.bsrow input.amt.ok{border-color:var(--good);background:var(--good-bg)} .fsrow input.amt.bad,.bsrow input.amt.bad{border-color:var(--wrong);background:var(--wrong-bg)}
@@ -2166,7 +2170,7 @@ wireIdentity();
   if(S.user && !S.startedAt) S.startedAt=Date.now();
   updateHud();
   setInterval(updateTimer,1000); updateTimer();
-  if(!S.user){ showIdentity(); } else { render(); }
+  if(!S.user){ render(); showIdentity(); } else { render(); }
 })();
 </script>
 </body>
