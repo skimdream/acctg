@@ -1,2 +1,0 @@
-# acctg
-Accounting Game
