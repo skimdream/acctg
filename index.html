@@ -1055,10 +1055,13 @@ function startDrag(e,srcEl,dropSel,onDrop){
   var ghost=srcEl.cloneNode(true); ghost.classList.add('dragghost'); ghost.classList.remove('placed');
   ghost.style.position='fixed'; ghost.style.margin='0'; ghost.style.left=rect.left+'px'; ghost.style.top=rect.top+'px'; ghost.style.width=rect.width+'px';
   document.body.appendChild(ghost); srcEl.classList.add('dragsrc');
-  var cur=null;
-  function mv(ev){ var x=ev.clientX,y=ev.clientY; ghost.style.left=(x-ox)+'px'; ghost.style.top=(y-oy)+'px'; ghost.style.display='none'; var el=document.elementFromPoint(x,y); ghost.style.display=''; var z=el?el.closest(dropSel):null; if(z!==cur){ if(cur) cur.classList.remove('drop-over'); cur=z; if(cur) cur.classList.add('drop-over'); } }
-  function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); ghost.remove(); srcEl.classList.remove('dragsrc'); if(cur) cur.classList.remove('drop-over'); onDrop(cur); }
-  document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up);
+  var cur=null, lastX=0, lastY=0, scrollT=null;
+  function hit(x,y){ ghost.style.display='none'; var el=document.elementFromPoint(x,y); ghost.style.display=''; var z=el?el.closest(dropSel):null; if(z!==cur){ if(cur) cur.classList.remove('drop-over'); cur=z; if(cur) cur.classList.add('drop-over'); } }
+  function autoScroll(){ var vh=window.innerHeight, edge=Math.min(90,vh*0.18), hdr=(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdr'))||0); var dy=0; if(lastY>vh-edge) dy=Math.ceil((lastY-(vh-edge))/edge*18)+4; else if(lastY<hdr+edge) dy=-(Math.ceil(((hdr+edge)-lastY)/edge*18)+4); if(dy){ window.scrollBy(0,dy); hit(lastX,lastY); } scrollT=requestAnimationFrame(autoScroll); }
+  function mv(ev){ var x=ev.clientX,y=ev.clientY; lastX=x; lastY=y; ghost.style.left=(x-ox)+'px'; ghost.style.top=(y-oy)+'px'; hit(x,y); }
+  function up(){ document.removeEventListener('pointermove',mv); document.removeEventListener('pointerup',up); document.removeEventListener('pointercancel',up); if(scrollT) cancelAnimationFrame(scrollT); ghost.remove(); srcEl.classList.remove('dragsrc'); if(cur) cur.classList.remove('drop-over'); onDrop(cur); }
+  lastX=e.clientX; lastY=e.clientY; scrollT=requestAnimationFrame(autoScroll);
+  document.addEventListener('pointermove',mv); document.addEventListener('pointerup',up); document.addEventListener('pointercancel',up);
 }
 
 /* ===== navigation + render router ===== */
