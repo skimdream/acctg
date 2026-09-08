@@ -281,6 +281,8 @@
   .farow .famt{width:88px;font-size:12px;padding:5px;border:2px solid var(--ink);font-family:var(--mono);text-align:right}
   .farow .rm{flex:0 0 25px} .farow .rmsp{flex:0 0 25px;width:25px;display:inline-block}
   .fbtable{width:100%;table-layout:fixed}
+  .fbscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%}
+  @media(max-width:640px){ .fbscroll{margin:0 -4px;padding:0 4px} .fbtable{min-width:560px} .fbtable th:nth-child(2),.fbtable td:nth-child(2){width:230px} .fbtable th:nth-child(3),.fbtable td:nth-child(3),.fbtable th:nth-child(4),.fbtable td:nth-child(4){width:100px} }
   .fbtable td{vertical-align:middle;padding:4px}
   .fbtable select,.fbtable input{width:100%;font-size:12px;padding:5px;border:2px solid var(--ink);background:#fff}
   .fbtable input{font-family:var(--mono);text-align:right}
@@ -1517,7 +1519,7 @@ function formBHtml(){
     var dInp='<input class="fbd" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.d||'')+'"'+(isD?'':' disabled')+'>';
     var cInp='<input class="fbc" data-ri="'+ri+'" inputmode="numeric" placeholder="0" value="'+esc(r.c||'')+'"'+(isD?' disabled':'')+'>';
     return '<tr><td style="width:76px">'+dcsel+'</td><td>'+acc+'</td><td>'+dInp+'</td><td>'+cInp+'</td><td style="width:26px">'+(ri>1?'<button class="rm" data-ri="'+ri+'">\u00d7</button>':'')+'</td></tr>'; }).join('');
-  return '<table class="je fbtable"><thead><tr><th>Dr/Cr</th><th>Account</th><th class="r">Debit</th><th class="r">Credit</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+  return '<div class="fbscroll"><table class="je fbtable"><thead><tr><th>Dr/Cr</th><th>Account</th><th class="r">Debit</th><th class="r">Credit</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
     '<div style="margin-top:8px"><button class="btn sm ghost" id="fbAdd">+ add line</button></div><div class="fb" id="fbFb"></div><div style="margin-top:10px"><button class="btn primary" id="fbCheck">Check Form B</button></div>';
 }
 function wireFormB(){
