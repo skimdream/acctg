@@ -347,6 +347,7 @@
 
   /* ---- DEALER analysis ---- */
   .dealer{display:grid;grid-template-columns:repeat(3,minmax(84px,1fr)) 24px repeat(3,minmax(84px,1fr));gap:6px;align-items:start;overflow-x:auto;padding-bottom:4px;margin:8px 0;max-width:100%}
+  @media(max-width:760px){ .dealer{grid-template-columns:repeat(3,150px) 24px repeat(3,150px);gap:8px} .dealer .danblktop select{font-size:13px;padding:7px 6px} .dealer .danamt{font-size:14px;padding:8px 6px} .dealer .danadd{white-space:nowrap} }
   .dlbar{text-align:center;font-weight:700;font-size:10.5px;color:#fff;padding:6px 3px;line-height:1.2;letter-spacing:.08em}
   .dlbar.deb{background:var(--debit)} .dlbar.cre{background:var(--credit)}
   .deqcol{align-self:center;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--soft2)}
