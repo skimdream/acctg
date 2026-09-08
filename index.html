@@ -25,6 +25,9 @@
     --mono:'IBM Plex Mono',ui-monospace,'SF Mono','Cascadia Mono','Roboto Mono',Menlo,Consolas,monospace;
   }
   html{overflow-y:scroll}
+  body{padding-top:0}
+  .app{padding-top:calc(var(--hdr,62px) + 16px)!important}
+  @media print{ body{padding-top:0} .app{padding-top:0!important} }
   body{font-family:'Noto Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;font-size:15.5px;overflow-x:hidden;-webkit-font-smoothing:antialiased}
   button,input,textarea,select{font-family:inherit}
   :focus{outline:none}
@@ -36,14 +39,16 @@
   b{font-weight:700}
 
   /* ---- top bar ---- */
-  .topbar{position:sticky;top:0;z-index:50;background:#282828;color:#fff;border-bottom:4px solid var(--brand);display:flex;align-items:center;gap:12px;padding:9px 16px;flex-wrap:wrap}
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:50;background:#282828;color:#fff;border-bottom:4px solid var(--brand);display:flex;align-items:center;gap:12px;padding:9px 16px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:#fff;letter-spacing:.1px}
   .brandtxt{display:flex;flex-direction:column;line-height:1.05}
   .brandtxt .bt1{font-size:15px;font-weight:700}
   .brandtxt .bt2{font-size:10px;color:#C9C6C0;font-weight:500;letter-spacing:.04em;margin-top:2px}
   .leftzone{flex:1 1 0;display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-  .rightzone{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;flex-wrap:wrap}
-  .brand{flex:0 0 auto;justify-content:center;text-align:center}
+  .rightzone{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;flex-wrap:nowrap}
+  .rightzone .tbtn,.rightzone .autosave{flex:0 0 auto}
+  .brand{flex:0 1 auto;justify-content:center;text-align:center;min-width:0}
+  .leftzone{flex:1 1 auto} .rightzone{flex:0 0 auto}
   .sesstimer{font-family:var(--mono);font-size:11px;color:#C9C6C0;font-weight:500;background:transparent;border:2px solid var(--ink-soft);padding:4px 10px;white-space:nowrap}
   .sesstimer b{color:var(--gold);font-variant-numeric:tabular-nums;font-weight:600}
   .appfoot{max-width:1200px;margin:8px auto 22px;padding:11px 16px;text-align:center;font-size:11.5px;color:var(--soft2);border-top:1px solid var(--line2)}
@@ -61,22 +66,24 @@
   .topbar .pbar{border-color:var(--ink-soft)}
   .pbar>i{display:block;height:100%;background:var(--brand);transition:width .45s}
   .progn{font-weight:700;font-size:14px;color:var(--gold);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
-  .tbtn{background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:12.5px;padding:6px 11px;cursor:pointer;transition:.12s}
+  .tbtn{background:transparent;border:2px solid #fff;color:#fff;font-weight:700;font-size:12.5px;padding:6px 11px;cursor:pointer;transition:.12s;white-space:nowrap}
   .tbtn:hover{background:var(--ink-soft)}
   .tbtn:active{transform:translateY(1px)}
-  .tbtn.save{background:#fff;color:var(--ink)}
-  .tbtn.save:hover{background:var(--panel3)}
+  .autosave{font-size:11.5px;font-weight:600;color:#C9C6C0;border:2px solid var(--ink-soft);padding:4px 10px;white-space:nowrap;font-variant-numeric:tabular-nums;transition:.2s}
+  .autosave.flash{color:#fff;border-color:var(--gold)}
   .tbtn.reset:hover{background:var(--brand)}
   @media(max-width:760px){ .prog{min-width:110px} .leftzone,.rightzone,.brand{flex:1 1 100%;justify-content:center} .topbar{padding:7px 10px;gap:6px} .brandtxt .bt1{font-size:16px!important} .brandtxt .bt2{display:none} .hudstack{align-items:center} .hudstack .prog{min-width:150px} .tbtn{padding:5px 8px;font-size:11.5px} .who,.sesstimer{font-size:11px;padding:3px 8px} }
 
   /* ---- layout ---- */
   .app{max-width:1200px;margin:0 auto;padding:16px;display:grid;grid-template-columns:228px minmax(0,1fr);gap:16px;align-items:start}
   #main{min-width:0}
+  #main>*:first-child,#main>.card:first-child{margin-top:0}
+  .sidemap,#main{align-self:start}
   .card{min-width:0;max-width:100%}
   @media(max-width:920px){ .app{grid-template-columns:minmax(0,1fr);gap:10px;padding:10px} }
 
   /* ---- sidebar stage map ---- */
-  .sidemap{position:sticky;top:74px;background:var(--panel);border:2px solid var(--ink);padding:11px 9px;min-width:0}
+  .sidemap{position:sticky;top:calc(var(--hdr,62px) + 16px);background:var(--panel);border:2px solid var(--ink);padding:11px 9px;min-width:0}
   .mtitle{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand);padding:2px 6px 8px;text-align:center}
   .ggrp{margin-bottom:3px}
   .glabel{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--soft2);padding:6px 6px;margin:8px 0 4px;text-align:center;border-top:1px solid var(--line)}
@@ -135,6 +142,18 @@
   .fb{padding:9px 12px;font-size:13px;font-weight:600;margin-top:10px;display:none}
   .fb.show{display:block}
   .fb.good{background:var(--good-bg);color:var(--good-text);border:2px solid var(--good)}
+  .mq{margin-top:10px;border-top:1px dashed var(--good);padding-top:8px;font-weight:500}
+  .mq>summary{cursor:pointer;font-weight:700;font-size:12.5px;color:var(--good-text);list-style:none;display:inline-block;border:1px solid var(--good);background:#fff;padding:3px 10px}
+  .mq>summary::-webkit-details-marker{display:none}
+  .mq[open]>summary{background:var(--good);color:#fff}
+  .mqbody{margin-top:9px;background:#fff;border:1px solid var(--good);padding:10px 12px;color:var(--ink);font-weight:500}
+  .mqq{font-weight:700;font-size:13.5px;line-height:1.45}
+  .mqans{margin-top:8px}
+  .mqans>summary{cursor:pointer;font-size:12px;color:var(--brand);font-weight:700;list-style:none;text-decoration:underline;text-underline-offset:2px}
+  .mqans>summary::-webkit-details-marker{display:none}
+  .mqa{font-size:13px;line-height:1.5;color:var(--soft);margin-top:6px;padding:8px 10px;background:var(--panel2);border-left:4px solid var(--brand)}
+  .mqnote{font-size:10.5px;color:var(--soft2);margin-top:6px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .note.good .mq>summary,.note.good .mqbody{font-weight:500}
   .fb.bad{background:var(--wrong-bg);color:#7A3C00;border:2px solid var(--wrong)}
   .fb.warn{background:var(--warn-bg);color:#7A3C00;border:2px solid var(--warn)}
 
@@ -362,10 +381,10 @@
   .ledgerpick{display:flex;align-items:center;gap:8px;margin:14px 0 8px;flex-wrap:wrap}
   .ledgerpick select{font-family:inherit;font-size:13px;padding:7px 9px;border:2px solid var(--ink);background:#fff}
   .taccts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(190px,100%),1fr));gap:11px}
-  .tacct{border:2px solid var(--ink);overflow:hidden;background:#fff;max-width:280px;min-width:0}
+  .tacct{border:2px solid var(--ink);overflow:visible;background:#fff;max-width:280px;min-width:0}
   .tacct .tnm{text-align:center;font-weight:700;font-size:13px;padding:7px;background:var(--panel2);border-bottom:2px solid var(--ink)}
-  .tbd{display:grid;grid-template-columns:1fr 1fr}
-  .tcell{min-height:58px;padding:6px}
+  .tbd{display:grid;grid-template-columns:1fr 1fr;align-items:stretch}
+  .tcell{min-height:58px;padding:6px;min-width:0}
   .tcell.dr{border-right:2px solid var(--ink)}
   .tcell .cap{font-size:9.5px;font-weight:700;text-transform:uppercase;color:var(--soft2);text-align:center;margin-bottom:4px;letter-spacing:.12em}
   .tcell .ent{font-size:12.5px;padding:1px 4px;display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-family:var(--mono)}
@@ -403,7 +422,7 @@
   .fswrap{display:grid;grid-template-columns:minmax(220px,300px) minmax(0,1fr);gap:14px;align-items:start}
   @media(max-width:840px){ .fswrap{grid-template-columns:minmax(0,1fr)} }
   @media(max-width:840px){ .fswrap{grid-template-columns:1fr} }
-  .atbpane{border:2px solid var(--ink);background:var(--panel2);padding:11px;position:sticky;top:74px}
+  .atbpane{border:2px solid var(--ink);background:var(--panel2);padding:11px;position:sticky;top:calc(var(--hdr,62px) + 16px)}
   @media(max-width:840px){ .atbpane{position:static} }
   .atbpane h4{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--brand);margin-bottom:7px;font-weight:700}
   .atbtable{width:100%;border-collapse:collapse;font-size:12px}
@@ -586,7 +605,7 @@
   .tbledger .taccts{grid-template-columns:repeat(auto-fill,minmax(min(215px,100%),1fr))}
   .tbledger .tacct{max-width:none}
   .tbledgerh{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--brand)}
-  .tbinput{position:sticky;top:74px}
+  .tbinput{position:sticky;top:calc(var(--hdr,62px) + 16px)}
   @media(max-width:920px){ .tbwrap{grid-template-columns:1fr} .tbledger{max-height:48vh} .tbinput{position:static} }
   input[inputmode="numeric"],.danamt{font-family:var(--mono)!important}
   .prsheet{overflow-x:auto;max-width:100%}
@@ -633,7 +652,7 @@
     <div class="prog"><span class="lbl">Progress</span><div class="pbar"><i id="progBar" style="width:0%"></i></div><span class="progn" id="progNum">0%</span></div></div>
     <button class="tbtn" id="ledgerBtn">📒 Ledger</button>
     <button class="tbtn" id="journalBtn">📓 Journal</button>
-    <button class="tbtn save" id="saveBtn">Save</button>
+    <span class="autosave" id="autoSave" title="Your work is saved automatically in this browser">Auto-saved</span>
     <button class="tbtn reset" id="resetBtn">Reset</button>
   </div>
 </header>
@@ -981,7 +1000,8 @@ function logSubmission(vc,printedAt){
   });
 }
 var SAVE_KEY='pawsome_quest_v5';
-function saveGame(silent){ try{ S.savedAt=Date.now(); localStorage.setItem(SAVE_KEY,JSON.stringify(S)); if(!silent) toast('Progress saved \u2713'); }catch(e){ if(!silent) toast('This browser blocked saving'); } }
+function saveGame(silent){ try{ S.savedAt=Date.now(); localStorage.setItem(SAVE_KEY,JSON.stringify(S)); markAutoSaved(); if(!silent) toast('Progress saved \u2713'); }catch(e){ if(!silent) toast('This browser blocked saving'); } }
+function markAutoSaved(){ var el=$('#autoSave'); if(!el||!S.savedAt) return; var d=new Date(S.savedAt); el.textContent='Auto-saved '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); el.classList.add('flash'); clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove('flash'); },1200); }
 var _saveT=null;
 function scheduleSave(){ clearTimeout(_saveT); _saveT=setTimeout(function(){ saveGame(true); },700); }
 function loadGame(){ try{ var raw=localStorage.getItem(SAVE_KEY); if(!raw) return null; var o=JSON.parse(raw); if(o&&o.v===5) return o; }catch(e){} return null; }
@@ -1002,6 +1022,26 @@ function bindParen(el,key,oninput){
 function bindSelect(el,key,onchange){ if(S.inp[key]!==undefined) el.value=S.inp[key]; el.addEventListener('change',function(){ S.inp[key]=el.value; if(onchange) onchange(); scheduleSave(); }); }
 function inpVal(key){ return parseAmt(S.inp[key]); }
 
+/* ===== Master Questions (optional, ungraded) ===== */
+var MASTER_Q={
+  fc_eq:{q:'Why can the accounting equation never be out of balance, even after a loss?',a:'Every transaction is recorded twice \u2014 once on each side, or as an offsetting pair on one side. A loss lowers Equity (through Retained Earnings), but it also lowers an Asset (or raises a Liability) by the same amount, so both sides fall together.'},
+  fc_sort:{q:'Dividends reduce equity. Why are they shown on the Retained Earnings Statement rather than the Income Statement?',a:'Dividends are a distribution of profit to owners, not a cost of earning revenue. The Income Statement measures performance (revenues minus expenses); the Retained Earnings Statement shows how that profit was kept or paid out.'},
+  fc_rules:{q:'Expenses reduce equity, yet they increase with a debit. How does that fit the rule that equity increases with a credit?',a:'Expenses are a contra-equity idea: a debit to an expense is really a decrease in equity. Debiting the expense and later closing it into Retained Earnings has the same net effect as debiting equity directly.'},
+  fc_order:{q:'Why must adjusting entries come before the financial statements, but closing entries come after?',a:'Adjustments bring balances up to date so the statements are accurate. Closing resets the temporary accounts to zero for the next period \u2014 doing that first would erase the very numbers the Income Statement needs.'},
+  fc_forms:{q:'All three forms show the same entry. What does the horizontal form make obvious that the journal form hides?',a:'The horizontal form displays the effect on the accounting equation (A = L + E) directly, so you can see the equation stays balanced. The journal form shows only debits and credits and relies on you to know each account\u2019s type.'},
+  record_id:{q:'Signing a contract or hiring an employee is important to the business. Why is it not recorded as a transaction?',a:'Recording requires a measurable change in an asset, liability, or equity that has already happened. A promise to exchange in the future has not yet changed any balance, so it is disclosed or simply remembered \u2014 not journalized.'},
+  record_je:{q:'Why does a journal entry that balances (debits = credits) still not guarantee it is correct?',a:'Balancing only proves the arithmetic. You could debit the wrong account, use the wrong amount on both sides, or record an event on the wrong date. Correctness needs the right accounts and amounts, not just equal totals.'},
+  record_post:{q:'If every journal entry balances, why is a trial balance still useful after posting?',a:'Posting is a separate copying step \u2014 a line can be posted to the wrong account, to the wrong side, or skipped. The trial balance checks that the posting step, not just the journal, kept debits equal to credits.'},
+  unadj:{q:'The unadjusted trial balance balances. Does that mean all account balances are correct?',a:'No. It proves only that total debits equal total credits. Errors that affect both sides equally (wrong account, wrong amount posted twice, omitted entry) stay hidden \u2014 and none of the period-end adjustments have been made yet.'},
+  ye_adj:{q:'Why do adjusting entries never involve Cash?',a:'Adjustments fix timing, not cash. Cash movements were already recorded when they happened; adjustments recognize revenue earned or expense incurred whose cash was paid earlier (prepaids, unearned) or will be paid later (accruals).'},
+  adjtb:{q:'Which statement can be built from the Adjusted TB alone, and which one cannot? Why?',a:'The Income Statement and the Balance Sheet can each be read straight from it. The Retained Earnings Statement cannot \u2014 its ending balance needs Net Income, which must be computed first, because the Adjusted TB still shows the beginning Retained Earnings.'},
+  is:{q:'Net income is positive, but Cash went down this period. How is that possible?',a:'Revenues and expenses are recognized when earned or incurred, not when cash moves. Buying equipment, paying dividends, or repaying a loan uses cash without touching net income, while credit sales raise income without raising cash.'},
+  re:{q:'Why does the Retained Earnings Statement start from the beginning balance instead of from zero?',a:'Retained Earnings is a permanent account \u2014 it accumulates every period\u2019s undistributed profit since the company began. The statement explains the change during this period, so it must start from what was already there.'},
+  bs:{q:'The Balance Sheet uses the ending Retained Earnings figure, not the one on the Adjusted TB. Why?',a:'The Adjusted TB shows Retained Earnings before this period\u2019s income and dividends are added in. The Balance Sheet reports the balance at the end of the period, so it must include this period\u2019s net income minus dividends.'},
+  ye_close:{q:'Why is Income Summary used at all, instead of closing each revenue and expense straight into Retained Earnings?',a:'Income Summary collects all revenues and expenses in one place so its balance equals net income \u2014 a built-in check against the Income Statement. Closing directly to Retained Earnings works arithmetically but hides that check.'},
+  postclose:{q:'Why does Service Revenue not appear on the Post-Closing Trial Balance?',a:'Service Revenue is a temporary account. Closing entries transferred its balance into Retained Earnings and reset it to zero, so only permanent accounts (assets, liabilities, equity) remain to carry into the next period.'}
+};
+function masterQ(key){ var m=MASTER_Q[key]; if(!m) return ''; return '<details class="mq"><summary>Think deeper \u25B8</summary><div class="mqbody"><div class="mqq">'+m.q+'</div><details class="mqans"><summary>Show a model answer</summary><div class="mqa">'+m.a+'</div></details><div class="mqnote">Optional \u2014 not graded.</div></div></details>'; }
 function toast(msg){ var t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove('show'); },1900); }
 
 /* ===== reusable pointer drag ===== */
@@ -1021,7 +1061,7 @@ function startDrag(e,srcEl,dropSel,onDrop){
 /* ===== navigation + render router ===== */
 var _prevStage=null;
 function unlock(key){ var i=STAGE_IDX[key]; if(i>S.unlocked) S.unlocked=i; }
-function goStage(key){ _thanksOpen=false; unlock(key); S.stage=key; S.reached[key]=true; saveGame(true); render(); }
+function goStage(key){ _thanksOpen=false; unlock(key); S.stage=key; S.reached[key]=true; saveGame(true); _prevStage=null; render(); requestAnimationFrame(function(){ window.scrollTo(0,0); }); }
 function stageDone(key){
   switch(key){
     case 'map': return false;
@@ -1046,17 +1086,17 @@ function renderSidebar(){
   STAGES.forEach(function(st,i){
     if(st.group!==last){ if(last!==null) html+='</div>'; html+='<div class="ggrp"><div class="glabel">'+st.group+'</div>'; last=st.group; }
     var cls='node', done=stageDone(st.key);
-    if(i===cur) cls+=' current'; else if(done) cls+=' done'; else if(i>S.unlocked) cls+=' locked';
+    if(i===cur&&!_thanksOpen) cls+=' current'; else if(done) cls+=' done'; else if(i>S.unlocked) cls+=' locked';
     if(i<=S.unlocked) cls+=' clickable';
     var mark=(done&&i!==cur)?'\u2713':st.icon;
     html+='<div class="'+cls+'" data-stage="'+st.key+'"><span class="ic">'+mark+'</span><span class="nl">'+st.title+'</span></div>';
   });
   html+='</div>'+'<div class="ggrp" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line2)"><div class="node clickable'+(_thanksOpen?' current':'')+'" id="thanksNode"><span class="ic">\u2665</span><span class="nl">Special Thanks to</span></div></div>'; $('#sidemap').innerHTML=html;
-  $('#thanksNode').onclick=function(){ _thanksOpen=true; render(); };
+  $('#thanksNode').onclick=function(){ _thanksOpen=true; _prevStage='__thanks'; render(); requestAnimationFrame(function(){ window.scrollTo(0,0); }); };
 }
 var _thanksOpen=false;
 function renderThanks(){
-  var names=['Junwoo Yang','Jireh Kwon','Aaron Miller','Jennie (Jaeyoung) Oh'];
+  var names=['Junwoo Yang','Jireh Kwon','Aaron Miller','Jennie (Jaeyoung) Oh','Taeyang Yoon','Seohyun Hwang','Sihyun Lee'];
   setMain('<div class="card" style="text-align:center"><div class="eyebrow">Special Thanks to</div><h2 class="h">Our Accounting &amp; Finance TAs</h2>'+
     '<p class="lede" style="max-width:520px;margin:6px auto 18px">This capstone was reviewed step by step by our teaching assistants, whose careful testing and thoughtful feedback made it clearer, fairer, and far more fun to learn from.<br>Thank you for lending your expertise and your time.</p>'+
     '<div style="display:grid;gap:10px;max-width:360px;margin:0 auto">'+names.map(function(n){ return '<div style="border:2px solid var(--ink);padding:12px 16px;font-weight:700;font-size:16px;background:#fff">'+n+'</div>'; }).join('')+'</div>'+
@@ -1069,7 +1109,7 @@ function render(){
   $('#sidemap').style.display=''; $('#main').style.display='';
   renderSidebar(); updateHud(); dispatch();
   var same=(_prevStage===S.stage); _prevStage=S.stage;
-  requestAnimationFrame(function(){ window.scrollTo(0, sy); });
+  requestAnimationFrame(function(){ window.scrollTo(0, same?sy:0); });
 }
 function dispatch(){
   if(_thanksOpen){ renderThanks(); return; }
@@ -1077,7 +1117,7 @@ function dispatch(){
     record:renderRecord, ye_unadj:renderUnadj, ye_adj:renderAdj, ye_adjtb:renderAdjtb, ye_fs:renderFS, ye_close:renderClose, ye_postclose:renderPostclose, submit:renderSubmit }[S.stage];
   (f||renderMap)();
 }
-function setMain(h){ $('#main').innerHTML=h; }
+function setMain(h){ $('#main').innerHTML=h; fitHeader(); }
 
 /* ===== identity (#21) ===== */
 function showIdentity(){ $('#overlay').classList.add('show'); var u=$('#idUnid'); if(u){ u.value=''; } var un=$('#idUnidNum'); if(un){ un.value='u'; setTimeout(function(){ un.focus(); un.setSelectionRange(1,1); },60); } }
@@ -1155,7 +1195,7 @@ function reviewSimple(key){
 var TOUR_STEPS=[
   {sel:'#ledgerBtn', title:'\u{1F4D2} Ledger', body:'Opens your T-accounts and current balances. Use it any time to check an account.'},
   {sel:'#journalBtn', title:'\u{1F4D3} Journal', body:'Lists every journal entry you have recorded, in date order.'},
-  {sel:'#saveBtn', title:'\u{1F4BE} Save', body:'Your work saves on its own, but this button stores it right now.'},
+  {sel:'#autoSave', title:'\u{1F4BE} Auto-save', body:'Your work is saved automatically in this browser. The time shown is the last save.'},
   {sel:'#sessTimer', title:'\u23F1 Timer', body:'Top-left, next to your name \u2014 shows when you started and how long you have worked.'},
   {sel:'#resetBtn', title:'\u21BB Reset', body:'Erases all progress and starts the quest over. It always asks first.'}
 ];
@@ -1205,20 +1245,19 @@ function renderMap(){
   var nm=S.user?esc(S.user.first):'traveler';
   setMain('<div class="card"><div class="eyebrow">Stage 0 \u00b7 Quest Map</div><h2 class="h">Welcome, '+nm+'! Here is your journey</h2>'+
     '<p class="lede">Pawsome Pet Care, Inc. just finished its first month. Take the company through the full accounting cycle. Tap any unlocked stop to jump there.</p>'+
-    '<div class="savestatus"><span>Your progress is saved automatically in this browser. <b>Last saved:</b> '+savedAgo()+'.</span><span style="flex:1"></span><button class="btn sm" id="mapSave">Save now</button></div>'+
+    '<div class="savestatus"><span>Your progress is saved automatically in this browser. <b>Last saved:</b> '+savedAgo()+'.</span></div>'+
     '<details class="learnbox" open style="margin-top:12px"><summary>How to use this screen \u2014 the menu buttons</summary>'+
       '<p style="margin:0 12px 8px;font-size:12.5px;color:var(--soft)">These controls sit in the top bar and work on every screen. Take the quick tour to find each one, or read the list any time.</p>'+
       '<div style="padding:0 12px 8px;display:flex;justify-content:flex-end"><button class="btn sm primary" id="startTour">\u25B6 '+(S.inp['tourDone']?'Replay the button tour':'Take the quick button tour')+'</button></div>'+
       '<div class="learngrid">'+
         '<div class="lc"><b>\u{1F4D2} Ledger</b> (top-right)<br>opens your T-accounts and current balances.</div>'+
         '<div class="lc"><b>\u{1F4D3} Journal</b> (top-right)<br>lists every journal entry you have recorded, in date order.</div>'+
-        '<div class="lc"><b>\u{1F4BE} Save</b> (top-right)<br>your work saves on its own; this stores it right now.</div>'+
+        '<div class="lc"><b>\u{1F4BE} Auto-saved</b> (top-right)<br>your work is saved automatically; the time shows the last save.</div>'+
         '<div class="lc"><b>\u23F1 Timer</b> (top-left, by your name)<br>shows your start time and elapsed time.</div>'+
         '<div class="lc" style="grid-column:1/-1"><b>\u21bb Reset</b> (top-right)<br>erases all progress and starts over. It always asks first.</div>'+
       '</div>'+
     '</details>'+
     '<div class="mapcanvas" style="margin-top:12px">'+nodes+'</div></div>');
-  $('#mapSave').onclick=function(){ saveGame(false); render(); };
   $$('.mapnode').forEach(function(n){ var j=n.getAttribute('data-jump'); if(j){ n.onclick=function(){ goStage(j); }; } });
   var stb=$('#startTour'); if(stb) stb.onclick=function(){ startTour(); };
 }
@@ -1251,7 +1290,7 @@ function renderEq(){
       row.classList.toggle('good',ok); row.classList.toggle('bad',!ok); inp.classList.toggle('ok',ok); inp.classList.toggle('bad',!ok); if(!ok) allok=false;
     });
     var fb=$('#eqfb');
-    if(allok){ scoreAdd('fc_eq',3); markDone('fc_eq'); unlock('fc_sort'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the equation always balances.'; var b=$('#eqCheck'); b.textContent='Continue to Lesson 2 \u2192'; b.onclick=function(){ goStage('fc_sort'); }; }
+    if(allok){ scoreAdd('fc_eq',3); markDone('fc_eq'); unlock('fc_sort'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the equation always balances.'+masterQ('fc_eq'); var b=$('#eqCheck'); b.textContent='Continue to Lesson 2 \u2192'; b.onclick=function(){ goStage('fc_sort'); }; }
     else { fb.className='fb bad show'; fb.innerHTML='Some are off. Rearrange <b>Assets = Liabilities + Equity</b> to find each missing number.'; }
   };
 }
@@ -1298,7 +1337,7 @@ function renderSort(){
     var allOk=true;
     $$('.dzone .achip[data-id]').forEach(function(c){ var id=c.getAttribute('data-id'); var box=c.closest('.dzone').getAttribute('data-c'); var ok=(CLASSIFY.filter(function(x){return x.id===id;})[0].cat===box); c.classList.remove('placed'); c.classList.toggle('ok',ok); c.classList.toggle('bad',!ok); if(!ok) allOk=false; });
     var fb=$('#sfb');
-    if(allOk){ scoreAdd('fc_sort',3); markDone('fc_sort'); unlock('fc_rules'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 All correct! Every account is on the right statement.'; var b=$('#sortCheck'); b.textContent='Continue \u2192'; b.onclick=function(){ goStage('fc_rules'); }; }
+    if(allOk){ scoreAdd('fc_sort',3); markDone('fc_sort'); unlock('fc_rules'); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 All correct! Every account is on the right statement.'+masterQ('fc_sort'); var b=$('#sortCheck'); b.textContent='Continue \u2192'; b.onclick=function(){ goStage('fc_rules'); }; }
     else { fb.className='fb bad show'; fb.innerHTML='Pink chips are in the wrong box \u2014 drag them out and try again.'; }
   };
 }
@@ -1332,7 +1371,7 @@ function renderRules(){
   if(answered) return;
   $$('.dcbtn').forEach(function(b){ b.onclick=function(){
     var v=b.getAttribute('data-v'), fb=$('#rfb');
-    if(v===q.ans){ b.classList.add('good'); $$('.dcbtn').forEach(function(x){x.disabled=true;}); fb.className='fb good show'; fb.innerHTML='\u2713 Yes! '+q.acct+' increases with a '+(q.ans==='D'?'debit':'credit')+'. Press <b>Next \u2192</b> to continue.'; S.rulesIndex=idx+1; S.rulesView=idx; saveGame(true); var nb=$('#rNext'); if(nb){ nb.disabled=false; nb.classList.add('primary'); } }
+    if(v===q.ans){ b.classList.add('good'); $$('.dcbtn').forEach(function(x){x.disabled=true;}); fb.className='fb good show'; fb.innerHTML='\u2713 Yes! '+q.acct+' increases with a '+(q.ans==='D'?'debit':'credit')+'. Press <b>Next \u2192</b> to continue.'+(idx===total-1?masterQ('fc_rules'):''); S.rulesIndex=idx+1; S.rulesView=idx; saveGame(true); var nb=$('#rNext'); if(nb){ nb.disabled=false; nb.classList.add('primary'); } }
     else { b.classList.add('bad'); fb.className='fb bad show'; fb.innerHTML='Look at the two boxes above \u2014 which list has this type?'; setTimeout(function(){ b.classList.remove('bad'); },460); }
   }; });
 }
@@ -1356,7 +1395,7 @@ function renderOrder(){
     '<p class="lede"><b>Drag each step</b> into the numbered slot where it belongs (or tap a step, then a slot). The <b>order</b> matters \u2014 step 1 to step 10.</p>'+
     '<div class="obucket" data-pool="1" style="border-style:solid;background:#fff"><div class="bt" style="color:var(--soft2)">Steps to place \u2014 drag from here</div>'+poolHtml+'</div>'+
     '<div style="margin-top:8px">'+slotsHtml+'</div>'+
-    (allPlaced?'<div class="fb good show">\u2713 All ten steps are in the right order! Press <b>Next \u2192</b> to continue.</div>':'<div class="fb" id="ofb"></div>')+
+    (allPlaced?'<div class="fb good show">\u2713 All ten steps are in the right order! Press <b>Next \u2192</b> to continue.'+masterQ('fc_order')+'</div>':'<div class="fb" id="ofb"></div>')+
     '<div class="row" style="margin-top:12px"><button class="btn primary right" id="oNext"'+(allPlaced?'':' disabled')+'>Next \u2192</button></div></div>');
   $('#oNext').onclick=function(){ if(!allPlaced) return; scoreAdd('fc_order',3); markDone('fc_order'); unlock('fc_forms'); saveGame(true); toast('Cycle order complete \u2713'); goStage('fc_forms'); };
   if(allPlaced) return;
@@ -1400,7 +1439,7 @@ function addFormNext(k,cb,fb){
   $('#formNextGo').onclick=function(){ S.inp['formStep']=nextK; S.inp['formReached']=nextK; saveGame(true); render(); };
 }
 function formSuccess(k,fb,msg){
-  fb.className='fb good show'; fb.innerHTML=msg; formPass(k);
+  fb.className='fb good show'; fb.innerHTML=msg+(k==='C'?masterQ('fc_forms'):''); formPass(k);
   var cb=$('#'+(k==='A'?'fa':k==='B'?'fb':'fc')+'Check'); if(cb) cb.disabled=true;
   var tab=$('#main .fstab[data-fstep="'+k+'"]'); if(tab){ tab.classList.add('done'); tab.classList.remove('cur'); tab.innerHTML='✓ Form '+k; }
   if(formAllDone()){
@@ -1524,6 +1563,7 @@ function recordTrailHtml(){
 }
 function estepDone(i,s){ return !!(S.estep[i]&&S.estep[i][s]); }
 function setEstep(i,s){ if(!S.estep[i]) S.estep[i]={}; S.estep[i][s]=true; }
+function firstTxnIndex(){ for(var k=0;k<EVENTS.length;k++){ if(EVENTS[k].isTxn) return k; } return 0; }
 function eventFullyDone(i,e){ return e.isTxn ? (estepDone(i,0)&&estepDone(i,1)&&estepDone(i,2)&&estepDone(i,3)) : estepDone(i,0); }
 function renderRecord(){
   if(!eventReached(S.txnIndex)) S.txnIndex=Math.min(firstIncompleteEvent(),EVENTS.length-1);
@@ -1602,7 +1642,7 @@ function wireIdentify(i,e){
   if(estepDone(i,0)) return;
   $$('.ynb').forEach(function(b){ b.onclick=function(){
     var saidYes=b.classList.contains('yes'), correct=e.isTxn?saidYes:!saidYes, fb=$('#idfb2');
-    if(correct){ b.classList.add('pg'); $$('.ynb').forEach(function(x){x.disabled=true;}); setEstep(i,0); fb.className='fb good show'; fb.innerHTML= e.isTxn?'\u2713 Yes \u2014 this changes the accounts. Move on to analyze.':'\u2713 Correct \u2014 '+esc(e.why||'nothing to record yet.'); var bar=document.createElement('div'); bar.className='evfoot'; bar.style.borderTop='none'; bar.style.paddingTop='10px'; bar.innerHTML='<div style="flex:1"></div><button class="btn primary" id="idNextGo">'+stepNextLabel(i,e)+'</button>'; fb.parentNode.appendChild(bar); $('#idNextGo').onclick=function(){ afterStep(i,e); }; }
+    if(correct){ b.classList.add('pg'); $$('.ynb').forEach(function(x){x.disabled=true;}); setEstep(i,0); fb.className='fb good show'; fb.innerHTML= e.isTxn?'\u2713 Yes \u2014 this changes the accounts. Move on to analyze.':('\u2713 Correct \u2014 '+esc(e.why||'nothing to record yet.')+masterQ('record_id')); var bar=document.createElement('div'); bar.className='evfoot'; bar.style.borderTop='none'; bar.style.paddingTop='10px'; bar.innerHTML='<div style="flex:1"></div><button class="btn primary" id="idNextGo">'+stepNextLabel(i,e)+'</button>'; fb.parentNode.appendChild(bar); $('#idNextGo').onclick=function(){ afterStep(i,e); }; }
     else { b.classList.add('pb'); fb.className='fb bad show'; fb.innerHTML= e.isTxn?'Look again \u2014 this one <b>does</b> change the accounts.':'Look again \u2014 has any dollar amount actually changed yet?'; setTimeout(function(){ b.classList.remove('pb'); b.disabled=false; },800); }
   }; });
 }
@@ -1693,7 +1733,7 @@ function buildJournalizeDrag(host,i,e,onPass){
       (allPlaced?'<div style="margin-top:12px"><button class="btn primary" id="jdcheck">Check the entry</button></div>':'')+'</div>';
     $$('.jdchips .jdchip[data-k]',host).forEach(function(c){ c.addEventListener('pointerdown',function(ev){ var k=+c.getAttribute('data-k'); startDrag(ev,c,'.jdbox.drop',function(box){ if(!box) return; var side=box.getAttribute('data-box'); var fb=$('#jdfb'); if(blocks[k].side===side){ pl[k]=true; save(); paint(); } else { if(fb){ fb.className='fb bad show'; fb.innerHTML='\u2715 '+ACC[blocks[k].a].name+' with that sign is a '+(blocks[k].side==='D'?'debit':'credit')+', not a '+(side==='D'?'debit':'credit')+'. Try the other box.'; } } }); }); });
     $$('.jdbox .jdchip[data-k]',host).forEach(function(c){ c.style.cursor='pointer'; c.title='click to take it back'; c.onclick=function(){ var k=+c.getAttribute('data-k'); pl[k]=false; save(); paint(); }; });
-    var cb=$('#jdcheck'); if(cb) cb.onclick=function(){ var lines=[]; blocks.forEach(function(b){ lines.push(b.side==='D'?[b.a,b.mag,0]:[b.a,0,b.mag]); }); var fb=$('#jdfb'); if(entryMatches(lines,e.lines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'; onPass(); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.id='jdNextGo'; nb.style.marginLeft='8px'; nb.textContent=stepNextLabel(i,e); cb.insertAdjacentElement('afterend',nb); $('#jdNextGo').onclick=function(){ afterStep(i,e); }; } else { fb.className='fb bad show'; fb.innerHTML='The entry does not match. Re-check your Analyze step.'; } };
+    var cb=$('#jdcheck'); if(cb) cb.onclick=function(){ var lines=[]; blocks.forEach(function(b){ lines.push(b.side==='D'?[b.a,b.mag,0]:[b.a,0,b.mag]); }); var fb=$('#jdfb'); if(entryMatches(lines,e.lines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'+(i===firstTxnIndex()?masterQ('record_je'):''); onPass(); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.id='jdNextGo'; nb.style.marginLeft='8px'; nb.textContent=stepNextLabel(i,e); cb.insertAdjacentElement('afterend',nb); $('#jdNextGo').onclick=function(){ afterStep(i,e); }; } else { fb.className='fb bad show'; fb.innerHTML='The entry does not match. Re-check your Analyze step.'; } };
   }
   paint();
 }
@@ -1725,7 +1765,7 @@ function buildJournalize(host,opts){
     if(lines.length<2){ fb.className='fb bad show'; fb.innerHTML='You need at least one debit and one credit line.'; return; }
     var td=0,tc=0; lines.forEach(function(l){ td+=l[1]; tc+=l[2]; });
     if(td!==tc){ fb.className='fb bad show'; fb.innerHTML='Debits must equal credits. Right now '+money(td)+' \u2260 '+money(tc)+'.'; return; }
-    if(entryMatches(lines,opts.expectLines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'; opts.onPass(st.date,lines); }
+    if(entryMatches(lines,opts.expectLines)){ fb.className='fb good show'; fb.innerHTML='\u2713 The journal entry is correct!'+(opts.mqKey?masterQ(opts.mqKey):''); opts.onPass(st.date,lines); }
     else { fb.className='fb bad show'; fb.innerHTML='That doesn\u2019t match. Re-check each account and whether its amount is a debit or a credit.'; }
   }
   paint();
@@ -1771,7 +1811,7 @@ function eventReviewHtml(i,e){
   var je='<div class="postlead" style="margin-top:12px">Your journal entry</div><div class="jentry"><div class="jh"><span>Account</span><span style="text-align:right">Debit</span><span style="text-align:right">Credit</span></div>'+
     e.lines.map(function(L){ var isD=L[1]>0; return '<div class="jr '+(isD?'dr':'cr')+'"><span class="acn">'+ACC[L[0]].name+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(isD?fmt(L[1]):'')+'</span><span style="text-align:right;font-family:var(--mono);font-size:12.5px">'+(!isD?fmt(L[2]):'')+'</span></div>'; }).join('')+'</div>';
   var involved=[]; e.lines.forEach(function(L){ if(involved.indexOf(L[0])<0) involved.push(L[0]); });
-  return '<div class="note good" style="margin-top:12px">\u2713 This event is done \u2014 here is what you recorded, for reference.</div>'+je+'<div class="postlead" style="margin-top:12px">Posted to the ledger</div><div class="taccts">'+involved.map(function(id){return tAccountHtml(id,{});}).join('')+'</div>';
+  return '<div class="note good" style="margin-top:12px">\u2713 This event is done \u2014 here is what you recorded, for reference.'+(i===firstTxnIndex()?masterQ('record_post'):'')+'</div>'+je+'<div class="postlead" style="margin-top:12px">Posted to the ledger</div><div class="taccts">'+involved.map(function(id){return tAccountHtml(id,{});}).join('')+'</div>';
 }
 
 /* ===================== YEAR-END CASTLE ===================== */
@@ -1876,7 +1916,7 @@ function buildTrialCheck(host,opts){
       if(!ok) allok=false;
     });
     var match=(td===expTotal&&tc===expTotal), fb=$('#tbfb');
-    if(allok&&match){ fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the trial balance is complete and balanced at '+money(expTotal)+'.'; var b=$('#tbcheck'); b.textContent=(opts.contLabel||'Continue')+' \u2192'; b.onclick=opts.onDone; }
+    if(allok&&match){ fb.className='fb good show'; fb.innerHTML='\u2713 Perfect \u2014 the trial balance is complete and balanced at '+money(expTotal)+'.'+masterQ(opts.stateKey==='utb'?'unadj':opts.stateKey==='atb'?'adjtb':opts.stateKey==='ptb'?'postclose':''); var b=$('#tbcheck'); b.textContent=(opts.contLabel||'Continue')+' \u2192'; b.onclick=opts.onDone; }
     else if(!match){ fb.className='fb bad show'; fb.innerHTML='The two column totals must be equal and match the ledger. Read each balance and put it on its normal side.'; }
     else { fb.className='fb bad show'; fb.innerHTML='Some rows are off (red). Check the account, the amount, and the column (debit vs credit).'; }
   }
@@ -1916,7 +1956,7 @@ function renderSeqBody(cfg,i,a,firstInc){
     var nextInc=firstInc();
     var leftBtn = allSeqDone ? '<button class="btn primary big" id="seqCont">'+cfg.contLabel+' \u2192</button>'
       : (nextInc<list.length ? '<button class="btn primary big" id="seqNextBtn">Next '+cfg.itemWord.toLowerCase()+' \u2192</button>' : '');
-    host.innerHTML='<div class="note good" style="margin-top:12px">\u2713 Journalized and posted.</div>'+adjEntryHtml(a)+'<div class="evfoot">'+leftBtn+'<div style="flex:1"></div><button class="btn ghost" id="redoSeq">\u21bb Redo this entry</button></div>';
+    host.innerHTML='<div class="note good" style="margin-top:12px">\u2713 Journalized and posted.'+(allSeqDone?masterQ(cfg.stepKey==='ye_adj'?'ye_adj':'ye_close'):'')+'</div>'+adjEntryHtml(a)+'<div class="evfoot">'+leftBtn+'<div style="flex:1"></div><button class="btn ghost" id="redoSeq">\u21bb Redo this entry</button></div>';
     var rs=$('#redoSeq'); if(rs) rs.onclick=function(){ redoSeqEntry(cfg.doneP,cfg.idxKey,cfg.stepKey,cfg.postKey,cfg.jePrefix,i); };
     var nb=$('#seqNextBtn'); if(nb) nb.onclick=function(){ S[cfg.idxKey]=nextInc; saveGame(true); render(); };
     var cb=$('#seqCont'); if(cb) cb.onclick=function(){ unlock(cfg.nextStage); goStage(cfg.nextStage); };
@@ -1934,7 +1974,7 @@ function renderClose(){ if(yeGate(stageDone('ye_close'), S.done['is']&&S.done['r
 /* --- Step 3: Adjusted TB (snapshot financials BEFORE closing) --- */
 function renderAdjtb(){
   if(yeGate(S.done['adjtb'], stageDone('ye_adj'), 'ye_adj', 'Adjusting Entries')) return;
-  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 3 of 6</div><h2 class="h">Adjusted Trial Balance</h2><p class="lede">After the six adjustments, list every balance again and check it still balances. These are the numbers your financial statements will use.</p><div id="tbhost"></div></div>');
+  setMain('<div class="card"><div class="eyebrow">Year-End Castle \u00b7 Step 3 of 6</div><h2 class="h">Adjusted Trial Balance</h2><p class="lede">After the four adjustments, list every balance again and check it still balances. These are the numbers your financial statements will use.</p><div id="tbhost"></div></div>');
   buildTrialCheck($('#tbhost'),{ stateKey:'atb', contLabel:'Continue to Financial Statements', onDone:function(){ S.snap.adjtb=trialTableHtml(true); S.snap.adjRows=trialRows(); S.snap.bal=cloneBal(); S.snap.fs=computeFS(); markDone('adjtb'); scoreAdd('adjtb',8); unlock('ye_fs'); saveGame(true); goStage('ye_fs'); } });
   yeRedoBtn(S.done['adjtb'],'ye_adjtb');
 }
@@ -1983,7 +2023,7 @@ function wireIS(){
     exps.forEach(function(a){ ok=mark('is_'+a.id,b[a.id])&&ok; });
     ok=mark('is_totexp',fs.expTotal)&&ok; ok=mark('is_ni',fs.ni)&&ok;
     var fb=$('#isfb');
-    if(ok){ markDone('is'); scoreAdd('is',4); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Income Statement is correct!'; var cb=$('#isCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    if(ok){ markDone('is'); scoreAdd('is',4); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Income Statement is correct!'+masterQ('is'); var cb=$('#isCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
     else { fb.className='fb bad show'; fb.innerHTML='Some amounts are off (red). Read each revenue and expense from the Adjusted TB. Net Income = Revenue \u2212 Total Expenses.'; }
   };
 }
@@ -1998,7 +2038,7 @@ function wireRE(){
     var fs=S.snap.fs||computeFS(snapBal()), ok=true;
     ok=mark('re_beg',fs.begRE)&&ok; ok=mark('re_ni',fs.ni)&&ok; ok=mark('re_div',fs.div)&&ok; ok=mark('re_end',fs.endRE)&&ok;
     var fb=$('#refb');
-    if(ok){ markDone('re'); scoreAdd('re',3); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Retained Earnings Statement is correct!'; var cb=$('#reCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    if(ok){ markDone('re'); scoreAdd('re',3); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Retained Earnings Statement is correct!'+masterQ('re'); var cb=$('#reCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
     else { fb.className='fb bad show'; fb.innerHTML='Check the numbers. Ending RE = Beginning RE + Net Income \u2212 Dividends.'; }
   };
 }
@@ -2009,23 +2049,23 @@ function bsHtml(){
     '<div class="bsrow ind"><span>Less: Accumulated Depreciation - Equipment</span><span class="eqpair"><input class="amt paren" id="bs_accdep" inputmode="numeric" placeholder="(0)"><input class="amt" id="bs_equipnet" inputmode="numeric" placeholder="net"></span></div>'+
     bsRow('Total Assets','bs_ta',false,'tot pinbottom')+'</div>';
   var le='<div class="bscol"><div class="bh">Liabilities &amp; Stockholders\u2019 Equity</div>'+
-    bsRow('Accounts Payable','bs_ap')+bsRow('Unearned Service Revenue','bs_un')+bsRow('Salaries Payable','bs_sp')+bsRow('Notes Payable','bs_np')+bsRow('Total Liabilities','bs_tl',false,'tot')+
+    bsRow('Accounts Payable','bs_ap')+bsRow('Unearned Service Revenue','bs_un')+bsRow('Notes Payable','bs_np')+bsRow('Total Liabilities','bs_tl',false,'tot')+
     bsRow('Common Stock','bs_cs',false,'sectop')+bsRow('Retained Earnings','bs_re')+bsRow('Total Stockholders\u2019 Equity','bs_te',false,'tot')+bsRow('Total Liabilities &amp; Equity','bs_tle',false,'tot pinbottom')+'</div>';
   return '<div class="fhd" style="border-radius:var(--r) var(--r) 0 0">Pawsome Pet Care, Inc.<span class="fttl">Balance Sheet</span><small>As of December 31, '+YEAR+'</small></div><div class="bst" style="border-top:none">'+assets+le+'</div><div class="tip" style="margin-top:10px"><span class="ti">\u2139</span><span>Equipment shows at cost, then <b>(Accumulated Depreciation)</b> is subtracted to give the net book value on the right. Both sides of the balance sheet must total the same number.</span></div><div class="fb" id="bsfb"></div><div style="margin-top:12px"><button class="btn primary" id="bsCheck">Check the Balance Sheet</button></div>';
 }
 function wireBS(){
   var b=snapBal(), fs=S.snap.fs||computeFS(snapBal());
-  ['bs_cash:cash','bs_ar:ar','bs_sup:sup','bs_ppi:ppi','bs_equip:equip','bs_ap:ap','bs_un:unearned','bs_sp:salpay','bs_np:notes','bs_cs:cs'].forEach(function(p){ var k=p.split(':')[0]; bindInput($('#'+k),k); });
+  ['bs_cash:cash','bs_ar:ar','bs_sup:sup','bs_ppi:ppi','bs_equip:equip','bs_ap:ap','bs_un:unearned','bs_np:notes','bs_cs:cs'].forEach(function(p){ var k=p.split(':')[0]; bindInput($('#'+k),k); });
   bindParen($('#bs_accdep'),'bs_accdep'); bindInput($('#bs_equipnet'),'bs_equipnet'); bindInput($('#bs_re'),'bs_re');
   bindInput($('#bs_ta'),'bs_ta'); bindInput($('#bs_tl'),'bs_tl'); bindInput($('#bs_te'),'bs_te'); bindInput($('#bs_tle'),'bs_tle');
   $('#bsCheck').onclick=function(){
     var ok=true;
     ok=mark('bs_cash',b.cash)&&ok; ok=mark('bs_ar',b.ar)&&ok; ok=mark('bs_sup',b.sup)&&ok; ok=mark('bs_ppi',b.ppi)&&ok;
     ok=mark('bs_equip',b.equip)&&ok; ok=mark('bs_accdep',b.accdep)&&ok; ok=mark('bs_equipnet',b.equip-b.accdep)&&ok; ok=mark('bs_ta',fs.totalAssets)&&ok;
-    ok=mark('bs_ap',b.ap)&&ok; ok=mark('bs_un',b.unearned)&&ok; ok=mark('bs_sp',b.salpay)&&ok; ok=mark('bs_np',b.notes)&&ok; ok=mark('bs_tl',fs.totalLiab)&&ok;
+    ok=mark('bs_ap',b.ap)&&ok; ok=mark('bs_un',b.unearned)&&ok; ok=mark('bs_np',b.notes)&&ok; ok=mark('bs_tl',fs.totalLiab)&&ok;
     ok=mark('bs_cs',b.cs)&&ok; ok=mark('bs_re',fs.endRE)&&ok; ok=mark('bs_te',fs.totalEquity)&&ok; ok=mark('bs_tle',fs.totalLiab+fs.totalEquity)&&ok;
     var fb=$('#bsfb');
-    if(ok){ markDone('bs'); scoreAdd('bs',6); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Balance Sheet is correct \u2014 both sides balance!'; var cb=$('#bsCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
+    if(ok){ markDone('bs'); scoreAdd('bs',6); saveGame(true); fb.className='fb good show'; fb.innerHTML='\u2713 The Balance Sheet is correct \u2014 both sides balance!'+masterQ('bs'); var cb=$('#bsCheck'); cb.disabled=true; var nb=document.createElement('button'); nb.className='btn primary'; nb.style.marginLeft='8px'; nb.textContent=fsNextLabel(); cb.insertAdjacentElement('afterend',nb); nb.onclick=function(){ gotoNextFs(); render(); }; }
     else { fb.className='fb bad show'; fb.innerHTML='Some amounts are off (red). Use the Adjusted TB. Net book value = Equipment \u2212 Accumulated Depreciation, and the two sides must total the same.'; }
   };
 }
@@ -2074,7 +2114,6 @@ function bsStatic(){
     '<tr class="subh"><td class="lbl">Liabilities</td><td class="c1"></td><td class="c2"></td></tr>'+
     '<tr><td class="lbl ind">Accounts Payable</td><td class="c1"></td><td class="c2">'+money(b.ap)+'</td></tr>'+
     '<tr><td class="lbl ind">Unearned Service Revenue</td><td class="c1"></td><td class="c2">'+fmt(b.unearned)+'</td></tr>'+
-    '<tr><td class="lbl ind">Salaries Payable</td><td class="c1"></td><td class="c2">'+fmt(b.salpay)+'</td></tr>'+
     '<tr><td class="lbl ind">Notes Payable</td><td class="c1"></td><td class="c2"><span class="u1">'+fmt(b.notes)+'</span></td></tr>'+
     '<tr><td class="lbl ind">Total Liabilities</td><td class="c1"></td><td class="c2">'+fmt(fs.totalLiab)+'</td></tr>'+
     '<tr class="subh"><td class="lbl">Stockholders\u2019 Equity</td><td class="c1"></td><td class="c2"></td></tr>'+
@@ -2126,7 +2165,7 @@ function renderSubmit(){
     '<div style="margin-top:6px"><button class="btn primary big" id="printBtn">Print / Save as PDF</button></div>'+
     (FORM_URL?'<p class="muted" id="logStatus" style="font-size:12.5px;margin-top:8px">When you print, a record of your name, uNID, score, time, and verification code is also sent to your instructor automatically.'+(S.lastLoggedAt?' Last sent: '+fmtClock(S.lastLoggedAt)+' (code '+esc(S.lastLoggedCode||'')+').':'')+'</p>':'')+
     '<h3 class="sh" style="margin-top:18px">Preview of what will be printed</h3><div id="submitPreview">'+submissionSheetHtml()+'</div></div>');
-  $('#printBtn').onclick=function(){ S.finishedAt=Date.now(); saveGame(true); updateTimer(); var vc=verifyCode(S.user&&S.user.unid,S.user&&S.user.first,S.user&&S.user.last,scoreShown(),S.startedAt,S.finishedAt); var pv=$('#submitPreview'); if(pv) pv.innerHTML=submissionSheetHtml(); var st=$('#logStatus'); if(st&&FORM_URL){ st.textContent='Sending your submission record to the instructor\u2026'; } logSubmission(vc,S.finishedAt).then(function(r){ if(!st) return; if(r==='sent') st.innerHTML='\u2713 Submission record sent to the instructor (code '+vc+').'; else if(r==='failed') st.innerHTML='Could not reach the instructor log \u2014 check your internet and print again.'; }); $('#printArea').innerHTML=submissionSheetHtml()+'<div class="prfoot">'+(S.user?esc(S.user.unid):'')+' \u00b7 '+(S.user?esc(S.user.first+' '+S.user.last):'')+' \u00b7 score '+scoreShown()+'/5 \u00b7 verification '+vc+'</div>'; setTimeout(function(){ window.print(); },700); };
+  $('#printBtn').onclick=function(){ S.finishedAt=Date.now(); saveGame(true); updateTimer(); var vc=verifyCode(S.user&&S.user.unid,S.user&&S.user.first,S.user&&S.user.last,scoreShown(),S.startedAt,S.finishedAt); var pv=$('#submitPreview'); if(pv) pv.innerHTML=submissionSheetHtml(); var _pd=new Date(S.finishedAt), _ymd=_pd.getFullYear()+String(_pd.getMonth()+1).padStart(2,'0')+String(_pd.getDate()).padStart(2,'0'); var _origTitle=document.title; document.title=(S.user.unid+'_'+S.user.first+' '+S.user.last+'_'+_ymd).replace(/[\\/:*?"<>|]/g,''); window.addEventListener('afterprint',function _rt(){ document.title=_origTitle; window.removeEventListener('afterprint',_rt); }); var st=$('#logStatus'); if(st&&FORM_URL){ st.textContent='Sending your submission record to the instructor\u2026'; } logSubmission(vc,S.finishedAt).then(function(r){ if(!st) return; if(r==='sent') st.innerHTML='\u2713 Submission record sent to the instructor (code '+vc+').'; else if(r==='failed') st.innerHTML='Could not reach the instructor log \u2014 check your internet and print again.'; }); $('#printArea').innerHTML=submissionSheetHtml()+'<div class="prfoot">'+(S.user?esc(S.user.unid):'')+' \u00b7 '+(S.user?esc(S.user.first+' '+S.user.last):'')+' \u00b7 score '+scoreShown()+'/5 \u00b7 verification '+vc+'</div>'; var _pt=document.title; var _tt=setInterval(function(){ if(document.title!==_pt) document.title=_pt; },50); setTimeout(function(){ document.title=_pt; window.print(); setTimeout(function(){ clearInterval(_tt); },1500); },700); };
 }
 
 /* ===================== WIRING + BOOT ===================== */
@@ -2157,14 +2196,20 @@ $('#ledgerClose').onclick=function(){ $('#ledgerModal').classList.remove('show')
 $('#journalClose').onclick=function(){ $('#journalModal').classList.remove('show'); };
 [$('#ledgerModal'),$('#journalModal')].forEach(function(m){ m.addEventListener('click',function(ev){ if(ev.target===m) m.classList.remove('show'); }); });
 document.addEventListener('keydown',function(ev){ if(ev.key==='Escape'){ $('#ledgerModal').classList.remove('show'); $('#journalModal').classList.remove('show'); $('#resetOverlay').classList.remove('show'); } });
-$('#saveBtn').onclick=function(){ saveGame(false); };
+document.addEventListener('input',function(e){ if(e.target&&e.target.closest&&e.target.closest('#main')) scheduleSave(); },true);
+document.addEventListener('change',function(e){ if(e.target&&e.target.closest&&e.target.closest('#main')) scheduleSave(); },true);
+setInterval(function(){ if(S&&S.user) saveGame(true); },60000);
 $('#resetBtn').onclick=function(){ $('#resetOverlay').classList.add('show'); };
 $('#resetCancel').onclick=function(){ $('#resetOverlay').classList.remove('show'); };
 $('#resetConfirm').onclick=function(){ $('#resetOverlay').classList.remove('show'); clearSave(); S=freshState(); _prevStage=null; showIdentity(); updateHud(); render(); };
 $('#resetOverlay').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('show'); });
 wireIdentity();
 
-(function boot(){
+function fitHeader(){ var h=$('.topbar'); if(h) document.documentElement.style.setProperty('--hdr',h.getBoundingClientRect().height+'px'); }
+window.addEventListener('resize',fitHeader);
+if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(fitHeader); }
+window.addEventListener('load',function(){ fitHeader(); setTimeout(fitHeader,500); });
+(function boot(){ fitHeader(); setTimeout(fitHeader,300);
   var saved=loadGame();
   S = saved ? saved : freshState();
   if(S.user && !S.startedAt) S.startedAt=Date.now();
