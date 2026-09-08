@@ -45,12 +45,13 @@
   .brandtxt .bt1{font-size:15px;font-weight:700}
   .brandtxt .bt2{font-size:10px;color:#C9C6C0;font-weight:500;letter-spacing:.04em;margin-top:2px}
   .leftzone{flex:1 1 0;display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-  .rightzone{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;flex-wrap:nowrap}
+  .rightzone{flex:1 1 0;display:flex;align-items:center;justify-content:flex-end;gap:9px;min-width:0;flex-wrap:wrap}
   .rightzone .tbtn,.rightzone .autosave{flex:0 0 auto}
   .brand{flex:0 0 auto;justify-content:center;text-align:center;min-width:0}
   .leftzone,.rightzone{flex:1 1 0;min-width:0}
-  @media(min-width:1200px){ .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center} .leftzone{justify-content:flex-start} .rightzone{justify-content:flex-end} .brand{white-space:nowrap} }
-  @media(min-width:761px) and (max-width:1199px){ .topbar{display:grid;grid-template-columns:1fr 1fr;align-items:center;row-gap:6px} .brand{grid-column:1 / -1;order:-1;justify-content:center} .leftzone{justify-content:flex-start} .rightzone{justify-content:flex-end;flex-wrap:wrap} }
+  @media(min-width:1440px){ .topbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center} .leftzone{justify-content:flex-start} .rightzone{justify-content:flex-end;flex-wrap:wrap} .brand{white-space:nowrap} }
+  @media(min-width:761px) and (max-width:1439px){ .topbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);align-items:center;row-gap:6px} .brand{grid-column:1 / -1;order:-1;justify-content:center} .leftzone{justify-content:flex-start;flex-wrap:wrap} .rightzone{justify-content:flex-end;flex-wrap:wrap} }
+  @media(max-width:760px){ .topbar{display:flex;flex-wrap:wrap} .leftzone,.rightzone{flex:1 1 100%;justify-content:center;flex-wrap:wrap} .rightzone .tbtn,.rightzone .autosave{flex:0 1 auto} .hudstack{align-items:center} }
   .sesstimer{font-family:var(--mono);font-size:11px;color:#C9C6C0;font-weight:500;background:transparent;border:2px solid var(--ink-soft);padding:4px 10px;white-space:nowrap}
   .sesstimer b{color:var(--gold);font-variant-numeric:tabular-nums;font-weight:600}
   .appfoot{max-width:1200px;margin:8px auto 22px;padding:11px 16px;text-align:center;font-size:11.5px;color:var(--soft2);border-top:1px solid var(--line2)}
