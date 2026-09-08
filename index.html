@@ -269,7 +269,8 @@
   .isre{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
   @media(max-width:560px){ .bsT,.isre{grid-template-columns:1fr} .bsT{gap:9px} }
   .twoform{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
-  @media(max-width:560px){ .twoform{grid-template-columns:minmax(0,1fr)} .jdboxes{grid-template-columns:minmax(0,1fr)} .rules{grid-template-columns:minmax(0,1fr)} }
+  @media(max-width:640px){ .fbscroll .twoform{min-width:560px;grid-template-columns:270px 270px} .twoform .farow .facc{width:auto;min-width:150px;font-size:13px} .twoform .farow .famt{width:96px;font-size:13px} }
+  @media(max-width:560px){ .jdboxes{grid-template-columns:minmax(0,1fr)} .rules{grid-template-columns:minmax(0,1fr)} }
   .fcol{min-width:0;overflow:visible}
   .farow .facc{width:0}
   .forms .formcard{min-width:0;overflow-x:auto}
@@ -297,7 +298,7 @@
   .formcard{border:1px solid var(--line2);padding:14px;background:#fff}
   .formcard .ft{font-size:11.5px;font-weight:700;text-transform:uppercase;color:var(--brand);margin-bottom:9px;letter-spacing:.12em}
   .hentry{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
-  @media(max-width:480px){ .hentry{grid-template-columns:1fr} }
+  @media(max-width:480px){ .hentry{min-width:420px} .formcard{overflow-x:auto} }
   .hside{font-family:var(--mono);font-size:13px}
   .hside .lab{color:var(--soft2);font-weight:600}
   .ventry{font-family:var(--mono);font-size:13.5px;line-height:1.9}
@@ -1496,7 +1497,7 @@ function formState(key,def){ var st; try{ st=JSON.parse(S.inp[key]||'null'); }ca
 function formAHtml(){
   var st=formState('fpA',{dr:[{a:'',m:''}],cr:[{a:'',m:''}]});
   function sideHtml(side,label,cls){ var rows=st[side].map(function(r,ri){ var rm=ri>0?'<button class="rm" data-side="'+side+'" data-ri="'+ri+'">\u00d7</button>':'<span class="rmsp"></span>'; return '<div class="farow"><select class="facc" data-side="'+side+'" data-ri="'+ri+'">'+accountOptions(r.a)+'</select><input class="famt" inputmode="numeric" placeholder="amount" data-side="'+side+'" data-ri="'+ri+'" value="'+esc(r.m||'')+'">'+rm+'</div>'; }).join(''); return '<div class="fcol"><div class="fcolh '+cls+'">'+label+'</div>'+rows+'<button class="btn sm ghost fadd" data-side="'+side+'" style="width:100%">+ add '+(side==='dr'?'debit':'credit')+' line</button></div>'; }
-  return '<div class="twoform">'+sideHtml('dr','Debit (left side)','deb')+sideHtml('cr','Credit (right side)','cre')+'</div><div class="fb" id="faFb"></div><div style="margin-top:10px"><button class="btn primary" id="faCheck">Check Form A</button></div>';
+  return '<div class="fbscroll"><div class="twoform">'+sideHtml('dr','Debit (left side)','deb')+sideHtml('cr','Credit (right side)','cre')+'</div></div><div class="fb" id="faFb"></div><div style="margin-top:10px"><button class="btn primary" id="faCheck">Check Form A</button></div>';
 }
 function wireFormA(){
   var host=$('#formHost');
